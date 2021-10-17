@@ -1,5 +1,5 @@
-#include "Arduino.h"
-#include "FastLED.h"
+#include <Arduino.h>
+#include <FastLED.h>
 
 #if defined(FASTLED_VERSION) && (FASTLED_VERSION < 3001000)
 #warning "Requires FastLED 3.1 or later; check github for latest code."
@@ -43,7 +43,12 @@ typedef void (*SimplePatternList[])();
 
 CRGB leds[NUM_LEDS];
 // List of patterns to cycle through.  Each is defined as a separate function below.
-SimplePatternList gPatterns = { lightning,bpm,lightning2};
+// SimplePatternList gPatterns = { lightning,bpm,lightning2};
+SimplePatternList gPatterns = { lightning,bpm,juggle,rainbow,rainbowWithGlitter,confetti,circle,shell,shell2,shell3,shell4,pulse};
+
+
+
+
 
 uint8_t gCurrentPatternNumber = 0; // Index number of which pattern is current
 uint8_t prevState = 1; // uninitiazlied
@@ -177,26 +182,6 @@ void lightning() {
     }
 
     ro=ro+64;
-
-//   else 
-//   {
-//     ro=ro+8;
-//   }
-
-// if(dir2)
-// {
-//   if (val2<255)
-//   val2=fade_bit(val2,1,0,gHue+100);
-//   else
-//   dir2=false;
-// }
-// else
-// {
-//     if (val2>0)
-//   val2=fade_bit(val2,0,0,gHue);
-//   else
-//   dir2=true;
-// }
   };
 };
 
