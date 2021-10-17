@@ -13,8 +13,8 @@
 #define NUM_LEDS    690 // todo: revert the number later
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
 
-//#define UP
-//#define DOWN
+//#define UP 1
+//#define DOWN -1
 
 void juggle() ;
 void nextPattern();
