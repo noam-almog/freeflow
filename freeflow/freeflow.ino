@@ -1,29 +1,28 @@
 #include "Arduino.h"
 #include "FastLED.h"
 
-// FastLED "100-lines-of-code" demo reel, showing just a few 
-// of the kinds of animation patterns you can quickly and easily 
-// compose using FastLED.  
-//
-// This example also shows one easy way to define multiple 
-// animations patterns and have them automatically rotate.
-//
-// -Mark Kriegsman, December 2014
-
 #if defined(FASTLED_VERSION) && (FASTLED_VERSION < 3001000)
 #warning "Requires FastLED 3.1 or later; check github for latest code."
 #endif
+#define DATA_PIN   2
+//#define CLK_PIN  4
+#define LED_TYPE    WS2811
+#define COLOR_ORDER GRB
+#define BRIGHTNESS          255
+#define FRAMES_PER_SECOND  120
+#define NUM_LEDS    690 // todo: revert the number later
+#define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
 
 void juggle() ;
 void nextPattern();
-void rainbow(); 
-void addGlitter( fract8 chanceOfGlitter); 
+void rainbow();
+void addGlitter( fract8 chanceOfGlitter);
 void sinelon();
 void pulse();
 void bpm();
-void rainbowWithGlitter(); 
+void rainbowWithGlitter();
 void lightning2();
-void confetti(); 
+void confetti();
 void lightning();
 int fill_bit(int start,bool fade,bool dir);
 void circle(bool dir,bool fade);
@@ -33,17 +32,10 @@ void shell2();
 void shell3();
 void shell4();
 int fade_bit(int val,bool dir,bool in,uint8_t hue);
-#define DATA_PIN   2 
-//#define CLK_PIN  4
-#define LED_TYPE    WS2811
-#define COLOR_ORDER GRB
-#define NUM_LEDS    100 //690 // todo: revert the number later
+
 CRGB leds[NUM_LEDS];
+byte prevState = 1; // uninitiazlied
 
-#define BRIGHTNESS          255
-#define FRAMES_PER_SECOND  120
-
-#define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
 
 void setup() {
   delay(3000); // 3 second delay for recovery
@@ -94,12 +86,22 @@ void executeCurrentPatten() {
   gPatterns[gCurrentPatternNumber]();
 }
 
-
-
 void nextPattern() {
   // round robin on all pattens
-  gCurrentPatternNumber = (gCurrentPatternNumber + 1) % ARRAY_SIZE( gPatterns);
+  gCurrentPatternNumber = randomNonRepeatingState();
 }
+
+byte randomNonRepeatingState() {
+  byte randNumber;
+  do {
+    randNumber = random(0, ARRAY_SIZE( gPatterns));
+  } while (randNumber == prevState);
+  prevState = randNumber;
+
+  return randNumber;
+}
+
+
 
 void rainbow() {
   // FastLED's built-in rainbow generator
