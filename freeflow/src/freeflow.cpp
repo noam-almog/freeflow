@@ -32,6 +32,9 @@ void shell2();
 void shell3();
 void shell4();
 int fade_bit(int val,bool dir,bool in,uint8_t hue);
+void executeCurrentPatten();
+byte randomNonRepeatingState();
+
 typedef void (*SimplePatternList[])();
 
 CRGB leds[NUM_LEDS];
