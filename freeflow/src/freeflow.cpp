@@ -171,14 +171,11 @@ void lightning() {
   if (ro < 8) {
     //  for(int i=pos;i<pos+(NUM_LEDS-random(pos,NUM_LEDS-(pos)));i++)
   
-    for (int i=pos; i < pos+25; i++) {
-      
-      // leds[i % NUM_LEDS] += CHSV( gHue + random8(64), 0, 160 + random8(90));
-      if (i < NUM_LEDS)
-        leds[i] += CHSV( gHue + random8(64), 0, 160 + random8(90));
-      }
-  }
-  ro=ro+64;
+    for (int i=pos; i < pos+25; i++) {  
+      leds[i % NUM_LEDS] += CHSV( gHue + random8(64), 0, 160 + random8(90));
+    }
+
+    ro=ro+64;
 
 //   else 
 //   {
@@ -199,8 +196,8 @@ void lightning() {
 //   else
 //   dir2=true;
 // }
-
-}
+  };
+};
 
 
 void lightning2() {
