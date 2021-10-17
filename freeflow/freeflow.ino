@@ -32,30 +32,16 @@ void shell2();
 void shell3();
 void shell4();
 int fade_bit(int val,bool dir,bool in,uint8_t hue);
+typedef void (*SimplePatternList[])();
 
 CRGB leds[NUM_LEDS];
 byte prevState = 1; // uninitiazlied
-
-
-void setup() {
-  delay(3000); // 3 second delay for recovery
-  
-  // tell FastLED about the LED strip configuration
-  FastLED.addLeds<LED_TYPE,DATA_PIN,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
-  //FastLED.addLeds<LED_TYPE,DATA_PIN,CLK_PIN,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
-
-  // set master brightness control
-}
-
-
 // List of patterns to cycle through.  Each is defined as a separate function below.
-typedef void (*SimplePatternList[])();
 SimplePatternList gPatterns = { lightning,bpm,lightning2};
-
 
 uint8_t gCurrentPatternNumber = 0; // Index number of which pattern is current
 uint8_t gHue = 0; // rotating "base color" used by many of the patterns
-uint8_t ro = 0; 
+uint8_t ro = 0;
 uint8_t outer= 77;
 uint8_t val=0;
 uint8_t val2=255;
@@ -66,15 +52,21 @@ int spot=0;
 int spot2=outer;
 
 
+void setup() {
+  delay(3000); // 3 second delay for recovery
+
+  // tell FastLED about the LED strip configuration
+  FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+  //FastLED.addLeds<LED_TYPE,DATA_PIN,CLK_PIN,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+
+  // set master brightness control
+}
+
 void loop() {
   // Call the current pattern function once, updating the 'leds' array
   executeCurrentPatten();
 
- 
-  FastLED.show();  
-  // insert a delay to keep the framerate modest
-
-  // FastLED.delay(1000/FRAMES_PER_SECOND); 
+  FastLED.show();
 
   // // do some periodic updates
   EVERY_N_MILLISECONDS( 10 ) { gHue++; } // slowly cycle the "base color" through the rainbow
@@ -360,24 +352,20 @@ void shell4() {
 }
 
 
-int fade_bit(int val,bool dir,bool in,uint8_t hue) {
+int fade_bit(int val, bool dir, bool in, uint8_t hue) {
+  int acc = -1;
+  if (dir) {
+    acc = 1;
+  }
+  
   if (in) {
     for (int i=outer; i<NUM_LEDS; i++) {
-      if (dir)      
-        leds[i]=CHSV(hue,255,val+1);
-      else
-        leds[i]=CHSV(hue,255,val-1);
+      leds[i] = CHSV(hue, 255, val + acc);
     }
   } else {
     for (int i=0; i < outer; i++) {
-      if (dir)      
-        leds[i]=CHSV(hue,255,val+1);
-      else
-        leds[i]=CHSV(hue,255,val-1);
+      leds[i] = CHSV(hue, 255, val + acc);
     }
   }
-  if (dir)
-    return val+1;
-  else 
-    return val-1;
+  return val + acc;
 }
