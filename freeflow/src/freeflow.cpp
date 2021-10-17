@@ -13,6 +13,9 @@
 #define NUM_LEDS    690 // todo: revert the number later
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
 
+//#define UP
+//#define DOWN
+
 void juggle() ;
 void nextPattern();
 void rainbow();
@@ -33,22 +36,24 @@ void shell3();
 void shell4();
 int fade_bit(int val,bool dir,bool in,uint8_t hue);
 void executeCurrentPatten();
-byte randomNonRepeatingState();
+int32_t randomNonRepeatingState();
 
 typedef void (*SimplePatternList[])();
 
 CRGB leds[NUM_LEDS];
-byte prevState = 1; // uninitiazlied
 // List of patterns to cycle through.  Each is defined as a separate function below.
 SimplePatternList gPatterns = { lightning,bpm,lightning2};
 
 uint8_t gCurrentPatternNumber = 0; // Index number of which pattern is current
+uint8_t prevState = 1; // uninitiazlied
+
 uint8_t gHue = 0; // rotating "base color" used by many of the patterns
 uint8_t ro = 0;
 uint8_t outer= 77;
 uint8_t val=0;
 uint8_t val2=255;
 uint8_t GA=0;
+
 bool dir2=false;
 bool dir=true;
 int spot=0;
@@ -86,7 +91,7 @@ void nextPattern() {
   gCurrentPatternNumber = randomNonRepeatingState();
 }
 
-byte randomNonRepeatingState() {
+int32_t randomNonRepeatingState() {
   byte randNumber;
   do {
     randNumber = random(0, ARRAY_SIZE( gPatterns));
@@ -118,7 +123,7 @@ void addGlitter( fract8 chanceOfGlitter) {
 
 void confetti() {
   // random colored speckles that blink in and fade smoothly
-  fadeToBlackBy( leds, NUM_LEDS, 10);
+  fadeToBlackBy(leds, NUM_LEDS, 10);
   int pos = random16(NUM_LEDS);
   leds[pos] += CHSV( gHue + random8(64), 200, 255);
 }
@@ -139,7 +144,7 @@ void bpm() {
   CRGBPalette16 palette = PartyColors_p;
   uint8_t beat = beatsin8( BeatsPerMinute, 64, 255);
   
-  if (GA%2==0) {
+  if (GA%2 == 0) {
     for (int i = 0; i < NUM_LEDS; i++)
       leds[i] = ColorFromPalette(palette, gHue+(i*2), 255);
   } else {
@@ -162,12 +167,14 @@ void juggle() {
 void lightning() {
   // random colored speckles that blink in and fade smoothly
   fadeToBlackBy( leds, NUM_LEDS, 70);
-  int pos = random16(0,NUM_LEDS);
+  int pos = random16(0, NUM_LEDS);
   if (ro < 8) {
     //  for(int i=pos;i<pos+(NUM_LEDS-random(pos,NUM_LEDS-(pos)));i++)
   
-    for (int i=pos; i<pos+25; i++) {
-      if(i<NUM_LEDS)
+    for (int i=pos; i < pos+25; i++) {
+      
+      // leds[i % NUM_LEDS] += CHSV( gHue + random8(64), 0, 160 + random8(90));
+      if (i < NUM_LEDS)
         leds[i] += CHSV( gHue + random8(64), 0, 160 + random8(90));
       }
   }
@@ -231,7 +238,7 @@ void pulse() {
     leds[i+3*NUM_LEDS/4] = CHSV( gHue ,255, 255);
 
     FastLED.show();  
-    fadeToBlackBy(leds,NUM_LEDS,10);
+    fadeToBlackBy(leds, NUM_LEDS, 10);
     delay(30);
   }
 }
@@ -239,7 +246,7 @@ void pulse() {
 int fill_bit(int start,bool fade,bool dir) {
   leds[start]=CHSV(gHue, 255,255);
   if (fade)
-    fadeToBlackBy(leds,NUM_LEDS,10);
+    fadeToBlackBy(leds, NUM_LEDS, 10);
   if (dir)
     return start+1;
   else
@@ -247,7 +254,7 @@ int fill_bit(int start,bool fade,bool dir) {
 }
 
 void circle(bool dir,bool fade) {
-   spot=  fill_bit(spot,fade,dir);
+   spot= fill_bit(spot,fade,dir);
     if (dir) {
       spot=spot%outer;
     } else {
