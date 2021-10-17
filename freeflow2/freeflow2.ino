@@ -79,6 +79,8 @@ void FillLEDsFromPaletteColors( uint8_t colorIndex)
 
 void ChangePalettePeriodically()
 {
+
+  // todo: randomize this ??
     uint8_t secondHand = (millis() / 1000) % 60;
     static uint8_t lastSecond = 99;
 

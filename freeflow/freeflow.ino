@@ -1,236 +1,440 @@
 #include "Arduino.h"
 #include "FastLED.h"
 
+// FastLED "100-lines-of-code" demo reel, showing just a few 
+// of the kinds of animation patterns you can quickly and easily 
+// compose using FastLED.  
+//
+// This example also shows one easy way to define multiple 
+// animations patterns and have them automatically rotate.
+//
+// -Mark Kriegsman, December 2014
 
-#define DATA_PIN    7  
-//#define CLK_PIN   4
+#if defined(FASTLED_VERSION) && (FASTLED_VERSION < 3001000)
+#warning "Requires FastLED 3.1 or later; check github for latest code."
+#endif
+
+void juggle() ;
+void nextPattern();
+void rainbow(); 
+void addGlitter( fract8 chanceOfGlitter); 
+void sinelon();
+void pulse();
+void bpm();
+void rainbowWithGlitter(); 
+void lightning2();
+void confetti(); 
+void lightning();
+int fill_bit(int start,bool fade,bool dir);
+void circle(bool dir,bool fade);
+void inner_circle(bool dir,bool fade);
+void shell();
+void shell2();
+void shell3();
+void shell4();
+int fade_bit(int val,bool dir,bool in,uint8_t hue);
+#define DATA_PIN   2 
+//#define CLK_PIN  4
 #define LED_TYPE    WS2811
 #define COLOR_ORDER GRB
-#define num_of_leds  300
-#define NUM_OF_STATES   9
+#define NUM_LEDS    690
+CRGB leds[NUM_LEDS];
 
-CRGB F_leds[num_of_leds];
-//const int ledsPerStrip = 700;
-//DMAMEM int displayMemory[ledsPerStrip*6];
-//int drawingMemory[ledsPerStrip * 6];
-//const int config = WS2811_GRB | WS2811_800kHz;
-//OctoWS2811 leds(ledsPerStrip, displayMemory, drawingMemory, config);
+#define BRIGHTNESS          255
+#define FRAMES_PER_SECOND  120
 
+void setup() {
+  delay(3000); // 3 second delay for recovery
+  
+  // tell FastLED about the LED strip configuration
+  FastLED.addLeds<LED_TYPE,DATA_PIN,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+  //FastLED.addLeds<LED_TYPE,DATA_PIN,CLK_PIN,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
 
-void rainbow();
-void rainbowWithGlitter();
-void addGlitter( fract8 chanceOfGlitter); 
-void confetti() ;
-void confetti2(); 
-void sinelon();
-void bpm();
-void juggle();
-void jumping_pole();
-void jumping_pole2();
-void mellowSagol();
+  // set master brightness control
+}
 
 
+// List of patterns to cycle through.  Each is defined as a separate function below.
 typedef void (*SimplePatternList[])();
-SimplePatternList gPatterns = { rainbow, rainbowWithGlitter, confetti, confetti2, jumping_pole2, sinelon, bpm, juggle, jumping_pole };
+// SimplePatternList gPatterns = { rainbow, pulse, rainbowWithGlitter,lightning, confetti,lightning2, sinelon, juggle, bpm,shell,shell2,shell3,shell4 };
+// SimplePatternList gPatterns = { circle };
+SimplePatternList gPatterns = { lightning,bpm,lightning2};
 
-
-byte prevState = 1; // uninitiazlied
-
-// SimplePatternList gPatterns = {rainbow,rainbowWithGlitter,confetti,bpm};
-// SimplePatternList gPatterns = {mellowSagol};
 
 uint8_t gCurrentPatternNumber = 0; // Index number of which pattern is current
 uint8_t gHue = 0; // rotating "base color" used by many of the patterns
-uint8_t glit = 0; // rotating "base color" used by many of the patterns
-uint8_t ro = 0;
-uint8_t pole = 0;
-uint8_t p_hue=130;
-bool light = false;
+uint8_t ro = 0; 
+uint8_t outer= 77;
+uint8_t val=0;
+uint8_t val2=255;
+uint8_t GA=0;
+bool dir2=false;
+bool dir=true;
+int spot=0;
+int spot2=outer;
+void loop()
+{
+  // Call the current pattern function once, updating the 'leds' array
+  gPatterns[gCurrentPatternNumber]();
 
 
-void setup() {
-  randomSeed(analogRead(0));
-//  leds.begin();
-//  leds.show();
-
-  //FastLED.addLeds<LED_TYPE,DATA_PIN,COLOR_ORDER>(F_leds, num_of_leds).setCorrection(TypicalLEDStrip);
-  //FastLED.addLeds<LED_TYPE,DATA_PIN,CLK_PIN,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
-}
+ 
+  FastLED.show();  
+  // insert a delay to keep the framerate modest
 
 
-void loop() {
-// Call the current pattern function once, updating the 'leds' array
-  if (!light) {
-    gPatterns[gCurrentPatternNumber]();
-  } else {
-    confetti2();
-  }
-  
-  //convert fast_led calculations into octows driving
-//  for (int i = 0; i < num_of_leds; i++) {
-//    CRGB fastLedRGB = F_leds[i];
-//    int octowsColor = leds.color(fastLedRGB.r, fastLedRGB.g, fastLedRGB.b);
-//    leds.setPixel( i, octowsColor);
-//  }
-  
-  // send the 'leds' array out to the actual LED strip
-//  leds.show();
+  // FastLED.delay(1000/FRAMES_PER_SECOND); 
 
-  // do some periodic updates
+  // // do some periodic updates
   EVERY_N_MILLISECONDS( 10 ) { gHue++; } // slowly cycle the "base color" through the rainbow
-  EVERY_N_MILLISECONDS( 10 ) { p_hue++; } // slowly cycle the "base color" through the rainbow
-  EVERY_N_SECONDS( 30 ) { nextRandomPattern(); } // change patterns periodically
-  EVERY_N_SECONDS( 30 ) { light=0; } // change patterns periodically
-  EVERY_N_SECONDS( 900 ) { light=1; } // change patterns periodically
-  EVERY_N_MILLISECONDS( 300 ) { glit= glit+10; } // change patterns periodically
+  EVERY_N_SECONDS( 20 ) { nextPattern(); } // change patterns periodically
+EVERY_N_SECONDS( 5 ) { GA++; } // change patterns periodically
+
+
 }
 
-void nextRandomPattern() {
-  gCurrentPatternNumber = randomNonRepeatingState();
+#define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
+
+void nextPattern()
+{
+  // add one to the current pattern number, and wrap around at the end
+  gCurrentPatternNumber = (gCurrentPatternNumber + 1) % ARRAY_SIZE( gPatterns);
 }
-
-byte randomNonRepeatingState() {
-  byte randNumber; 
-  do
-  {
-    randNumber = random(1,NUM_OF_STATES + 1); // generate random number between 1 & 5 (minimum is inclusive, maximum is exclusive)
-  } while (randNumber == prevState);
-  prevState = randNumber;
-
-  return randNumber;
-}
-
-
 
 void rainbow() 
 {
   // FastLED's built-in rainbow generator
-  fill_rainbow(F_leds, num_of_leds, gHue, 3);
-  fadeToBlackBy( F_leds, num_of_leds, 200);
+  fill_rainbow( leds, NUM_LEDS, gHue, 5);
+  delay(10);
 }
 
 void rainbowWithGlitter() 
 {
   // built-in FastLED rainbow, plus some random sparkly glitter
   rainbow();
-  addGlitter(glit);
+  addGlitter(80);
 }
-
 
 void addGlitter( fract8 chanceOfGlitter) 
 {
   if( random8() < chanceOfGlitter) {
-    F_leds[ random16(num_of_leds) ] += CRGB::White;
+    leds[ random16(NUM_LEDS) ] += CRGB::White;
   }
 }
 
-void confetti() {
-  // random colored speckles that blink in and fade smoothly
-  fadeToBlackBy( F_leds, num_of_leds, 35);
-  int pos = random16(num_of_leds);
-  F_leds[pos] += CHSV( gHue + random8(64), 200, 255);
-  delay(50);
-}
-
-void confetti2() 
+void confetti() 
 {
   // random colored speckles that blink in and fade smoothly
-  fadeToBlackBy( F_leds, num_of_leds, 50);
-  int pos = random16(num_of_leds);
-  if(ro<8)
-  {
-    for(int i=pos;i<pos+(num_of_leds-random(pos,num_of_leds-(pos)));i++)
-  F_leds[i] += CHSV( gHue + random8(64), 0, 160 + random8(90));
-  ro=ro+8;
-  }
-  else
-  {
-    ro=ro+8;
-  }
+  fadeToBlackBy( leds, NUM_LEDS, 10);
+  int pos = random16(NUM_LEDS);
+  leds[pos] += CHSV( gHue + random8(64), 200, 255);
 }
 
-void sinelon() {
+void sinelon()
+{
   // a colored dot sweeping back and forth, with fading trails
-  fadeToBlackBy( F_leds, num_of_leds, 20);
-  int pos = beatsin16( 52, 0, num_of_leds-1 );
-  F_leds[pos] += CHSV( gHue, 255, 192);
+  fadeToBlackBy( leds, NUM_LEDS, 20);
+  int pos = beatsin16( 13, 0, outer-1 );
+  int pos2 = beatsin16( 13, outer, NUM_LEDS-1 );
+
+  leds[pos2] += CHSV( gHue, 255, beatsin8( 60, 64, 255));
+  leds[pos] += CHSV( gHue+16, 255, beatsin8( 50, 0, 70));
 }
 
 void bpm()
 {
   // colored stripes pulsing at a defined Beats-Per-Minute (BPM)
-  uint8_t BeatsPerMinute = 60;
+  uint8_t BeatsPerMinute = 40;
   CRGBPalette16 palette = PartyColors_p;
   uint8_t beat = beatsin8( BeatsPerMinute, 64, 255);
-  for( int i = 0; i < num_of_leds; i++) 
-    { //9948
-    F_leds[i] = ColorFromPalette(palette, gHue+(i), beat-i*10);
-    }
+  
+  if(GA%2==0)
+  {
+  for( int i = 0; i < NUM_LEDS; i++)
+    leds[i] = ColorFromPalette(palette, gHue+(i*2), 255);
+
+  }
+else
+{
+    for( int i = NUM_LEDS-1; i > 0; i--)  
+    leds[i] = ColorFromPalette(palette, gHue+(i*2), 255);
 }
+  }
 
 void juggle() {
   // eight colored dots, weaving in and out of sync with each other
-  fadeToBlackBy( F_leds, num_of_leds, 10);
+  fadeToBlackBy( leds, NUM_LEDS, 20);
   byte dothue = 0;
   for( int i = 0; i < 8; i++) {
-    F_leds[beatsin16( i+7, 0, num_of_leds-1 )] |= CHSV(dothue, 200, 255);
-    dothue += 32;
-  }
-fadeToBlackBy( F_leds, num_of_leds, 10);
-  for( int i = 8; i < 0; i++) {
-    F_leds[beatsin16( 0, i+7, num_of_leds-1 )] |= CHSV(dothue, 200, 255);
+    leds[beatsin16( i+7, 0, NUM_LEDS-1 )] |= CHSV(dothue, 200, 255);
     dothue += 32;
   }
 }
 
-void jumping_pole(){
-    CRGBPalette16 palette = CloudColors_p ;
-    CRGBPalette16 palette2= RainbowStripeColors_p;
-  fill_solid(F_leds,num_of_leds,CHSV(0,0,0));
-  for (int i =pole*120; i<(pole+1)*120;i++)
+
+void lightning() 
+{
+  // random colored speckles that blink in and fade smoothly
+  fadeToBlackBy( leds, NUM_LEDS, 70);
+  int pos = random16(0,NUM_LEDS);
+  if(ro<8)
   {
-    if(pole%2==0)
-    F_leds[i]=ColorFromPalette(palette,gHue,gHue);
-    else
-    F_leds[i]=ColorFromPalette(palette2,gHue,gHue);
+    //  for(int i=pos;i<pos+(NUM_LEDS-random(pos,NUM_LEDS-(pos)));i++)
+  
+    for(int i=pos;i<pos+25;i++)
+    
+    {
+       if(i<NUM_LEDS)
+  leds[i] += CHSV( gHue + random8(64), 0, 160 + random8(90));
+    }
   }
-   pole++;
-   if(pole==4)
-  pole=0;
-ro=ro+5;
-if(gHue<150)
-delay(150-gHue);
+    ro=ro+64;
 
-}
-
-void jumping_pole2(){
-
-  fill_solid(F_leds,num_of_leds,CHSV(0,0,0));
-  for (int i =pole*120; i<(pole+1)*120;i++)
-  {
-    if(pole%2==0)
-    F_leds[i]=CHSV(ro,200,255);
-    else
-    F_leds[i]=CHSV(255-ro,200,255);
-  }
-   pole++;
-   ro=ro+1;
-
-   if(pole==4)
-  pole=0;
-
-
-delay(80);
-}
-
-// void mellowSagol()
-// {
- 
-//   for(int i=0;i<num_of_leds;i++)
+//   else 
 //   {
-//     F_leds[i]=CHSV(beatsin8( 30, 130, 200), beatsin8( 30, 64, 80),255);
+//     ro=ro+8;
 //   }
-//   if(p_hue>=200)
-//   p_hue=150;
-//   delay(20);
+
+// if(dir2)
+// {
+//   if (val2<255)
+//   val2=fade_bit(val2,1,0,gHue+100);
+//   else
+//   dir2=false;
 // }
+// else
+// {
+//     if (val2>0)
+//   val2=fade_bit(val2,0,0,gHue);
+//   else
+//   dir2=true;
+// }
+
+}
+
+
+void lightning2() 
+{
+  // random colored speckles that blink in and fade smoothly
+  fadeToBlackBy( leds, NUM_LEDS, 50);
+  int pos = random16(outer,NUM_LEDS);
+  if(ro<32)
+  {
+    for(int i=pos;i<pos+(NUM_LEDS-random(pos,NUM_LEDS-(pos)));i++)
+  leds[i] += CHSV( gHue + random8(64), 0, 160 + random8(90));
+  ro=ro+2;
+  }
+  else 
+  {
+    ro=ro+2;
+  }
+
+ if(ro<8)
+  {
+    int po=random8(90);
+    for(int i=0;i<5;i++)
+    {
+leds[i] += CHSV( 0, 0, 160 + po);
+leds[i+20]+= CHSV( 0, 0, 160 + po);
+leds[i+40]+= CHSV( 0, 0, 160 + po);
+leds[i+60]+= CHSV(0, 0, 160 + po);
+  }
+  ro=ro+2;
+  }
+  else 
+  {
+    ro=ro+2;
+  }
+
+
+}
+
+
+
+
+void pulse()
+{
+  for (int i=0;i<NUM_LEDS/4;i++)
+  {
+  leds[i] = CHSV( gHue ,255, 255);
+  leds[i+NUM_LEDS/4] = CHSV( gHue ,255, 255);
+  leds[i+2*NUM_LEDS/4] = CHSV( gHue ,255, 255);
+  leds[i+3*NUM_LEDS/4] = CHSV( gHue ,255, 255);
+
+  FastLED.show();  
+  fadeToBlackBy(leds,NUM_LEDS,10);
+  delay(30);
+
+  }
+}
+
+int fill_bit(int start,bool fade,bool dir)
+{
+  leds[start]=CHSV(gHue, 255,255);
+  if (fade)
+  fadeToBlackBy(leds,NUM_LEDS,10);
+  if (dir)
+  return start+1;
+  else
+  return start-1;
+}
+
+void circle(bool dir,bool fade)
+{
+   spot=  fill_bit(spot,fade,dir);
+    if (dir)
+  {
+   spot=spot%outer;
+  }
+  else
+  {
+      if(spot==-1)
+      spot=outer-1;
+  }
+}
+void inner_circle(bool dir,bool fade)
+{
+    spot2=  fill_bit(spot2,fade,dir);
+  if (dir)
+  {
+  if(spot2==NUM_LEDS)
+  spot2=outer;
+  }
+  else
+  {
+  if(spot2==outer-1)
+  spot2=NUM_LEDS-1;
+  }
+}
+void shell()
+{
+//   inner_circle(0,0);
+  circle(0,0);
+delay(30);
+
+if(dir)
+{
+  if (val<255)
+  val=fade_bit(val,1,1,gHue);
+  else
+  dir=false;
+}
+else
+{
+    if (val>0)
+  val=fade_bit(val,0,1,gHue);
+  else
+  dir=true;
+}
+}
+
+void shell2()
+{
+   inner_circle(0,0);
+  circle(0,0);
+delay(20);
+}
+
+void shell3()
+{
+  //  inner_circle(0,1);
+  // circle(0,0);
+delay(20);
+
+if(dir)
+{
+  if (val<255)
+  val=fade_bit(val,1,1,gHue+100);
+  else
+  dir=false;
+}
+else
+{
+    if (val>0)
+  val=fade_bit(val,0,1,gHue+150);
+  else
+  dir=true;
+}
+
+if(dir2)
+{
+  if (val2<255)
+  val2=fade_bit(val2,1,0,gHue);
+  else
+  dir2=false;
+}
+else
+{
+    if (val2>0)
+  val2=fade_bit(val2,0,0,gHue);
+  else
+  dir2=true;
+}
+}
+
+void shell4()
+{
+   inner_circle(0,1);
+  // circle(0,0);
+delay(20);
+
+// if(dir)
+// {
+//   if (val<255)
+//   val=fade_bit(val,1,1,gHue);
+//   else
+//   dir=false;
+// }
+// else
+// {
+//     if (val>0)
+//   val=fade_bit(val,0,1,gHue);
+//   else
+//   dir=true;
+// }
+
+if(dir2)
+{
+  if (val2<255)
+  val2=fade_bit(val2,1,0,gHue+100);
+  else
+  dir2=false;
+}
+else
+{
+    if (val2>0)
+  val2=fade_bit(val2,0,0,gHue);
+  else
+  dir2=true;
+}
+}
+
+
+int fade_bit(int val,bool dir,bool in,uint8_t hue)
+{
+  if (in)
+  {
+    for(int i=outer;i<NUM_LEDS;i++)
+    {
+      if (dir)      
+      leds[i]=CHSV(hue,255,val+1);
+      else
+      leds[i]=CHSV(hue,255,val-1);
+    }
+
+  }
+  else
+  {
+      for(int i=0;i<outer;i++)
+    {
+      if (dir)      
+      leds[i]=CHSV(hue,255,val+1);
+      else
+      leds[i]=CHSV(hue,255,val-1);
+    }
+  }
+  if(dir)
+  return val+1;
+  else 
+  return val-1;
+}
