@@ -373,3 +373,15 @@ int fade_bit(int val, bool dir, bool in, uint8_t hue) {
 }
 
 
+void runOnFrame(int (*f)()) {
+    for (int i=0; i < LEDS_PER_ROW; i++) {
+      leds[posFor(0, i)] = f();
+      leds[posFor(ROW_NUM, i)] = f();
+    }
+    for (int i=0; i < ROW_NUM; i++) {
+      leds[posFor(i, 0)] = f();
+      leds[posFor(0, LEDS_PER_ROW)] = f();
+    }
+
+
+}
