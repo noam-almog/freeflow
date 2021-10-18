@@ -13,6 +13,11 @@
 #define NUM_LEDS    690 // todo: revert the number later
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
 
+#define ROW_NUM      7
+#define LEDS_PER_ROW   100
+
+
+
 //#define UP
 // i hate git!
 //#define DOWN
@@ -38,6 +43,7 @@ void shell4();
 int fade_bit(int val,bool dir,bool in,uint8_t hue);
 void executeCurrentPatten();
 int32_t randomNonRepeatingState();
+u_int16_t posFor(u_int16_t row, u_int16_t column);
 
 typedef void (*SimplePatternList[])();
 
@@ -107,6 +113,9 @@ int32_t randomNonRepeatingState() {
   return randNumber;
 }
 
+u_int16_t posFor(u_int16_t row, u_int16_t column) {
+    return row * LEDS_PER_ROW + column;
+}
 
 
 void rainbow() {
@@ -362,3 +371,5 @@ int fade_bit(int val, bool dir, bool in, uint8_t hue) {
   }
   return val + acc;
 }
+
+
