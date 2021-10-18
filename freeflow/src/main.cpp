@@ -10,11 +10,11 @@
 #define COLOR_ORDER GRB
 #define BRIGHTNESS          255
 #define FRAMES_PER_SECOND  120
-#define NUM_LEDS    690 // todo: revert the number later
+#define NUM_LEDS    624 // todo: revert the number later
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
 
-#define ROW_NUM      7
-#define LEDS_PER_ROW   100
+#define ROW_NUM      6
+#define LEDS_PER_ROW   104
 
 
 
@@ -44,13 +44,18 @@ int fade_bit(int val,bool dir,bool in,uint8_t hue);
 void executeCurrentPatten();
 int32_t randomNonRepeatingState();
 u_int16_t posFor(u_int16_t row, u_int16_t column);
+void runOnFrame(int (*f)());
+void paint_pixel(int i);
+void test();
+
+
 
 typedef void (*SimplePatternList[])();
 
 CRGB leds[NUM_LEDS];
 // List of patterns to cycle through.  Each is defined as a separate function below.
 // SimplePatternList gPatterns = { lightning,bpm,lightning2};
-SimplePatternList gPatterns = { lightning,bpm,juggle,rainbow,rainbowWithGlitter,confetti,circle,shell,shell2,shell3,shell4,pulse};
+SimplePatternList gPatterns = { lightning,bpm,juggle,rainbow,rainbowWithGlitter,confetti,pulse};
 
 
 
@@ -114,8 +119,44 @@ int32_t randomNonRepeatingState() {
 }
 
 u_int16_t posFor(u_int16_t row, u_int16_t column) {
+  if(row%2==0)
     return row * LEDS_PER_ROW + column;
+  else
+    return ((row+1) * LEDS_PER_ROW-(column +1)); 
 }
+
+void runOnFrame(int (*f)(int i))
+ {
+    for (int i=0; i < LEDS_PER_ROW; i++) {
+      
+      f(leds[posFor(0, i)] );
+      f(leds[posFor(ROW_NUM, i)]);
+    }
+    for (int i=0; i < ROW_NUM; i++) {
+
+      f(leds[posFor(i, 0)]);
+      f(leds[posFor(i, 1)]);
+      f(leds[posFor(0, LEDS_PER_ROW)]);
+      f(leds[posFor(0, LEDS_PER_ROW-1)]);
+    }
+
+}
+
+void paint_pixel(int i,u_int8_t h,u_int8_t s,u_int8_t v,uint8_t Delay, uint8_t fade)
+{
+  leds[i]=CRGB(h,s,v);
+  fadeToBlackBy(leds,NUM_LEDS,fade);
+  delay(Delay);
+  }
+/////////patterns from here on !
+void test ()
+{
+  runOnFrame(&paint_pixel());
+ 
+  }
+
+
+
 
 
 void rainbow() {
@@ -157,7 +198,7 @@ void bpm() {
   // colored stripes pulsing at a defined Beats-Per-Minute (BPM)
   uint8_t BeatsPerMinute = 40;
   CRGBPalette16 palette = PartyColors_p;
-  uint8_t beat = beatsin8( BeatsPerMinute, 64, 255);
+  // uint8_t beat = beatsin8( BeatsPerMinute, 64, 255);
   
   if (GA%2 == 0) {
     for (int i = 0; i < NUM_LEDS; i++)
@@ -195,31 +236,6 @@ void lightning() {
 };
 
 
-void lightning2() {
-  // random colored speckles that blink in and fade smoothly
-  fadeToBlackBy( leds, NUM_LEDS, 50);
-  int pos = random16(outer,NUM_LEDS);
-  if (ro < 32) {
-    for(int i=pos;i<pos+(NUM_LEDS-random(pos,NUM_LEDS-(pos)));i++)
-      leds[i] += CHSV( gHue + random8(64), 0, 160 + random8(90));
-    ro=ro+2;
-  } else {
-    ro=ro+2;
-  }
-
-  if (ro < 8) {
-    int po=random8(90);
-    for (int i=0; i<5; i++) {
-      leds[i] += CHSV( 0, 0, 160 + po);
-      leds[i+20]+= CHSV( 0, 0, 160 + po);
-      leds[i+40]+= CHSV( 0, 0, 160 + po);
-      leds[i+60]+= CHSV(0, 0, 160 + po);
-    }
-    ro=ro+2;
-  } else {
-    ro=ro+2;
-  }
-}
 
 
 void pulse() {
@@ -235,153 +251,127 @@ void pulse() {
   }
 }
 
-int fill_bit(int start,bool fade,bool dir) {
-  leds[start]=CHSV(gHue, 255,255);
-  if (fade)
-    fadeToBlackBy(leds, NUM_LEDS, 10);
-  if (dir)
-    return start+1;
-  else
-    return start-1;
-}
-
-void circle(bool dir,bool fade) {
-   spot= fill_bit(spot,fade,dir);
-    if (dir) {
-      spot=spot%outer;
-    } else {
-      if(spot==-1)
-        spot=outer-1;
-    }
-}
-
-void inner_circle(bool dir,bool fade) {
-  spot2=  fill_bit(spot2,fade,dir);
-  if (dir) {
-    if(spot2==NUM_LEDS)
-      spot2=outer;
-  } else {
-  if (spot2 == outer-1)
-    spot2=NUM_LEDS-1;
-  }
-}
-
-void shell() {
+// int fill_bit(int start,bool fade,bool dir) {
+//   leds[start]=CHSV(gHue, 255,255);
+//   if (fade)
+//     fadeToBlackBy(leds, NUM_LEDS, 10);
+//   if (dir)
+//     return start+1;
+//   else
+//     return start-1;
+// }
+// void circle(bool dir,bool fade) {
+//    spot= fill_bit(spot,fade,dir);
+//     if (dir) {
+//       spot=spot%outer;
+//     } else {
+//       if(spot==-1)
+//         spot=outer-1;
+//     }
+// }
+// void inner_circle(bool dir,bool fade) {
+//   spot2=  fill_bit(spot2,fade,dir);
+//   if (dir) {
+//     if(spot2==NUM_LEDS)
+//       spot2=outer;
+//   } else {
+//   if (spot2 == outer-1)
+//     spot2=NUM_LEDS-1;
+//   }
+// }
+// void shell() {
+// //   inner_circle(0,0);
+//   circle(0,0);
+//   delay(30);
+//   if (dir) {
+//     if (val < 255)
+//       val=fade_bit(val,1,1,gHue);
+//     else
+//       dir=false;
+//   } else {
+//     if (val > 0)
+//       val=fade_bit(val,0,1,gHue);
+//     else
+//     dir=true;
+//   }
+// }
+// void shell2() {
 //   inner_circle(0,0);
-  circle(0,0);
-  delay(30);
-
-  if (dir) {
-    if (val < 255)
-      val=fade_bit(val,1,1,gHue);
-    else
-      dir=false;
-  } else {
-    if (val > 0)
-      val=fade_bit(val,0,1,gHue);
-    else
-    dir=true;
-  }
-}
-
-void shell2() {
-  inner_circle(0,0);
-  circle(0,0);
-  delay(20);
-}
-
-void shell3() {
-  //  inner_circle(0,1);
-  // circle(0,0);
-  delay(20);
-
-  if (dir) {
-    if (val<255)
-      val=fade_bit(val,1,1,gHue+100);
-    else
-    dir=false;
-  } else {
-    if (val > 0)
-      val=fade_bit(val,0,1,gHue+150);
-    else
-      dir=true;
-  }
-
-  if (dir2) {
-    if (val2<255)
-      val2=fade_bit(val2,1,0,gHue);
-    else
-      dir2=false;
-    } else {
-      if (val2 > 0)
-        val2=fade_bit(val2,0,0,gHue);
-      else
-        dir2=true;
-    }
-}
-
-void shell4() {
-  inner_circle(0,1);
-  // circle(0,0);
-  delay(20);
-
-// if(dir)
-// {
-//   if (val<255)
-//   val=fade_bit(val,1,1,gHue);
-//   else
-//   dir=false;
+//   circle(0,0);
+//   delay(20);
 // }
-// else
-// {
-//     if (val>0)
-//   val=fade_bit(val,0,1,gHue);
-//   else
-//   dir=true;
+// void shell3() {
+//   //  inner_circle(0,1);
+//   // circle(0,0);
+//   delay(20);
+//   if (dir) {
+//     if (val<255)
+//       val=fade_bit(val,1,1,gHue+100);
+//     else
+//     dir=false;
+//   } else {
+//     if (val > 0)
+//       val=fade_bit(val,0,1,gHue+150);
+//     else
+//       dir=true;
+//   }
+//   if (dir2) {
+//     if (val2<255)
+//       val2=fade_bit(val2,1,0,gHue);
+//     else
+//       dir2=false;
+//     } else {
+//       if (val2 > 0)
+//         val2=fade_bit(val2,0,0,gHue);
+//       else
+//         dir2=true;
+//     }
+// }
+// void shell4() {
+//   inner_circle(0,1);
+//   // circle(0,0);
+//   delay(20);
+// // if(dir)
+// // {
+// //   if (val<255)
+// //   val=fade_bit(val,1,1,gHue);
+// //   else
+// //   dir=false;
+// // }
+// // else
+// // {
+// //     if (val>0)
+// //   val=fade_bit(val,0,1,gHue);
+// //   else
+// //   dir=true;
+// // }
+//   if (dir2) {
+//     if (val2 < 255)
+//       val2=fade_bit(val2,1,0,gHue+100);
+//     else
+//       dir2=false;
+//   } else {
+//     if (val2 > 0)
+//       val2=fade_bit(val2,0,0,gHue);
+//     else
+//       dir2=true;
+//   }
+// }
+// int fade_bit(int val, bool dir, bool in, uint8_t hue) {
+//   int acc = -1;
+//   if (dir) {
+//     acc = 1;
+//   }
+//   if (in) {
+//     for (int i=outer; i<NUM_LEDS; i++) {
+//       leds[i] = CHSV(hue, 255, val + acc);
+//     }
+//   } else {
+//     for (int i=0; i < outer; i++) {
+//       leds[i] = CHSV(hue, 255, val + acc);
+//     }
+//   }
+//   return val + acc;
 // }
 
-  if (dir2) {
-    if (val2 < 255)
-      val2=fade_bit(val2,1,0,gHue+100);
-    else
-      dir2=false;
-  } else {
-    if (val2 > 0)
-      val2=fade_bit(val2,0,0,gHue);
-    else
-      dir2=true;
-  }
-}
 
-
-int fade_bit(int val, bool dir, bool in, uint8_t hue) {
-  int acc = -1;
-  if (dir) {
-    acc = 1;
-  }
-  
-  if (in) {
-    for (int i=outer; i<NUM_LEDS; i++) {
-      leds[i] = CHSV(hue, 255, val + acc);
-    }
-  } else {
-    for (int i=0; i < outer; i++) {
-      leds[i] = CHSV(hue, 255, val + acc);
-    }
-  }
-  return val + acc;
-}
-
-
-void runOnFrame(int (*f)()) {
-    for (int i=0; i < LEDS_PER_ROW; i++) {
-      leds[posFor(0, i)] = f();
-      leds[posFor(ROW_NUM, i)] = f();
-    }
-    for (int i=0; i < ROW_NUM; i++) {
-      leds[posFor(i, 0)] = f();
-      leds[posFor(0, LEDS_PER_ROW)] = f();
-    }
-
-
-}
