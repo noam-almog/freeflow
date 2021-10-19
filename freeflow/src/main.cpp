@@ -119,17 +119,19 @@ int32_t randomNonRepeatingState() {
 }
 
 u_int16_t posFor(u_int16_t row, u_int16_t column) {
-  if(row%2==0)
+  if (row %2 == 0)
     return row * LEDS_PER_ROW + column;
   else
-    return ((row+1) * LEDS_PER_ROW-(column +1)); 
+    return (((row + 1) * LEDS_PER_ROW) - column);
+//    return (row * LEDS_PER_ROW + (LEDS_PER_ROW - column));
 }
 
 void runOnFrame(int (*f)(int i))
  {
     for (int i=0; i < LEDS_PER_ROW; i++) {
-      
+
       f(leds[posFor(0, i)] );
+
       f(leds[posFor(ROW_NUM, i)]);
     }
     for (int i=0; i < ROW_NUM; i++) {
