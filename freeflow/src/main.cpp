@@ -43,7 +43,7 @@ void shell4();
 int fade_bit(int val,bool dir,bool in,uint8_t hue);
 void executeCurrentPatten();
 int32_t randomNonRepeatingState();
-u_int16_t posFor(u_int16_t row, u_int16_t column);
+u_int16_t posFor(u_int16_t column, u_int16_t row);
 void runOnFrame(int (*f)());
 void paint_pixel(int i);
 // void test();
@@ -119,29 +119,11 @@ int32_t randomNonRepeatingState() {
   return randNumber;
 }
 
-u_int16_t posFor(u_int16_t row, u_int16_t column) {
+u_int16_t posFor(u_int16_t column, u_int16_t row) {
   if (row %2 == 0)
     return row * LEDS_PER_ROW + column;
   else
     return (((row + 1) * LEDS_PER_ROW) - (column + 1));
-}
-
-void runOnFrame(int (*f)(int i))
- {
-    for (int i=0; i < LEDS_PER_ROW; i++) {
-
-      f(leds[posFor(0, i)] );
-
-      f(leds[posFor(ROW_NUM, i)]);
-    }
-    for (int i=0; i < ROW_NUM; i++) {
-
-      f(leds[posFor(i, 0)]);
-      f(leds[posFor(i, 1)]);
-      f(leds[posFor(0, LEDS_PER_ROW)]);
-      f(leds[posFor(0, LEDS_PER_ROW-1)]);
-    }
-
 }
 
 void paint_pixel(int i,u_int8_t h,u_int8_t s,u_int8_t v,uint8_t Delay, uint8_t fade)
@@ -246,7 +228,7 @@ void pulse() {
     leds[i+2*NUM_LEDS/4] = CHSV( gHue ,255, 255);
     leds[i+3*NUM_LEDS/4] = CHSV( gHue ,255, 255);
 
-    FastLED.show();  
+    FastLED.show();
     fadeToBlackBy(leds, NUM_LEDS, 10);
     delay(30);
   }
