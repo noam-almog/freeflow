@@ -362,22 +362,29 @@ void snakePattern() {
   u_int8_t h = 1;
   u_int8_t s = 255;
   u_int8_t v = 255;
-  
-  for (u_int16_t i = 0; i < LEDS_PER_ROW; i++) {
-    lightOnePixelAndFadeFrame(i, 0, h, v, s);
-  }
 
-  for (u_int16_t i = 1; i < ROW_NUM; i++) {
-    lightOnePixelAndFadeFrame(LEDS_PER_ROW - 1, i, h, v, s);
-  }
+  leds[posFor(0, 0)] = CRGB(h, s, v)
+  leds[posFor(0, 1)] = CRGB(h, s, v)
+  leds[posFor(0, 2)] = CRGB(h, s, v)
+  leds[posFor(0, 3)] = CRGB(h, s, v)
+  leds[posFor(0, 4)] = CRGB(h, s, v)
+  leds[posFor(0, 5)] = CRGB(h, s, v)
 
-  for (u_int16_t i = LEDS_PER_ROW - 2; i >= 0; i--) {
-    lightOnePixelAndFadeFrame(i, ROW_NUM - 1, h, v, s);
-  }
-
-  for (u_int16_t i = ROW_NUM - 2; i >= 0; i--) {
-    lightOnePixelAndFadeFrame(0, i, h, v, s);
-  }
+//  for (u_int16_t i = 0; i < LEDS_PER_ROW; i++) {
+//    lightOnePixelAndFadeFrame(i, 0, h, v, s);
+//  }
+//
+//  for (u_int16_t i = 1; i < ROW_NUM; i++) {
+//    lightOnePixelAndFadeFrame(LEDS_PER_ROW - 1, i, h, v, s);
+//  }
+//
+//  for (u_int16_t i = LEDS_PER_ROW - 2; i >= 0; i--) {
+//    lightOnePixelAndFadeFrame(i, ROW_NUM - 1, h, v, s);
+//  }
+//
+//  for (u_int16_t i = ROW_NUM - 2; i >= 0; i--) {
+//    lightOnePixelAndFadeFrame(0, i, h, v, s);
+//  }
 }
 
 void lightOnePixelAndFadeFrame(u_int16_t x, u_int16_t y, u_int8_t h, u_int8_t s, u_int8_t v) {
