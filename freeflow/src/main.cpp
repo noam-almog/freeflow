@@ -394,7 +394,7 @@ void fadeFrame() {
     fadePixel(i, ROW_NUM - 1);
   }
 
-  for (u_int16_t j = 1; j < ROW_NUM - 1; j++) {
+  for (u_int16_t j = 1; j < ROW_NUM - 2; j++) {
     fadePixel(0, j);
     fadePixel(LEDS_PER_ROW -1 , j);
   }
