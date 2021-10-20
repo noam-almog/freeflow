@@ -378,8 +378,8 @@ void pulse() {
 
 void snakePattern() {
   u_int8_t h = 1;
-  u_int8_t s = 2;
-  u_int8_t v = 3;
+  u_int8_t s = 255;
+  u_int8_t v = 255;
   
   for (u_int16_t i = 0; i < LEDS_PER_ROW; i++) {
     lightOnePixelAndFadeFrame(i, 0, h, v, s);
@@ -410,6 +410,7 @@ void fadeFrame() {
   for (u_int16_t i = 0; i < LEDS_PER_ROW; i++) {
     leds[posFor(i, 0)] -= 10; // todo: fade one pixel correctly
     leds[posFor(i, ROW_NUM - 1)] -= 10;
+    leds[posFor(i, ROW_NUM - 1)] = 
   }
 
   for (u_int16_t j = 1; j < ROW_NUM - 1; j++) {
