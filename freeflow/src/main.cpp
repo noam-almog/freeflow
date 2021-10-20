@@ -363,12 +363,12 @@ void snakePattern() {
   u_int8_t s = 255;
   u_int8_t v = 255;
 
-  leds[posFor(0, 0)] = CRGB(h, s, v)
-  leds[posFor(0, 1)] = CRGB(h, s, v)
-  leds[posFor(0, 2)] = CRGB(h, s, v)
-  leds[posFor(0, 3)] = CRGB(h, s, v)
-  leds[posFor(0, 4)] = CRGB(h, s, v)
-  leds[posFor(0, 5)] = CRGB(h, s, v)
+  leds[posFor(0, 0)] = CRGB(h, s, v);
+  leds[posFor(0, 1)] = CRGB(h, s, v);
+  leds[posFor(0, 2)] = CRGB(h, s, v);
+  leds[posFor(0, 3)] = CRGB(h, s, v);
+  leds[posFor(0, 4)] = CRGB(h, s, v);
+  leds[posFor(0, 5)] = CRGB(h, s, v);
     FastLED.show();
     delay(30);
 //  for (u_int16_t i = 0; i < LEDS_PER_ROW; i++) {
