@@ -54,13 +54,15 @@ void snakePattern();
 void horizontalSnake();
 void horizontalDrunkSnake();
 
+void frame_and_hori_snake();
+void fill_frame(u_int8_t h, u_int8_t s, u_int8_t v);
 void fadeRow(u_int16_t y, u_int8_t fadeBy);
 
 typedef void (*SimplePatternList[])();
 
 CRGB leds[NUM_LEDS];
 // List of patterns to cycle through.  Each is defined as a separate function below.
-SimplePatternList gPatterns = { snakePattern, bpm, horizontalSnake, horizontalDrunkSnake };
+SimplePatternList gPatterns = { snakePattern, bpm, horizontalSnake, horizontalDrunkSnake ,frame_and_hori_snake};
 // SimplePatternList gPatterns = { lightning,bpm,juggle,rainbow,rainbowWithGlitter,confetti,pulse};
 
 
@@ -104,7 +106,7 @@ void loop() {
 
   // // do some periodic updates
   EVERY_N_MILLISECONDS( 10 ) { gHue++; } // slowly cycle the "base color" through the rainbow
-  EVERY_N_SECONDS( 20 ) { nextPattern(); } // change patterns periodically
+  EVERY_N_SECONDS( 2 ) { nextPattern(); } // change patterns periodically
   EVERY_N_SECONDS( 5 ) { GA++; } // change patterns periodically
 }
 
@@ -114,7 +116,8 @@ void executeCurrentPatten() {
 
 void nextPattern() {
   // round robin on all pattens
-  gCurrentPatternNumber = randomNonRepeatingState();
+  // gCurrentPatternNumber = randomNonRepeatingState();
+  gCurrentPatternNumber = (gCurrentPatternNumber+1)%ARRAY_SIZE( gPatterns);
 }
 
 int32_t randomNonRepeatingState() {
@@ -194,6 +197,7 @@ void bpm() {
     for (int i = NUM_LEDS-1; i > 0; i--)  
       leds[i] = ColorFromPalette(palette, gHue+(i*2), 255);
   }
+        FastLED.show();
 }
 
 void juggle() {
@@ -245,8 +249,7 @@ void snakePattern() {
   u_int8_t v = 255;
   u_int8_t f=5;
   
-    FastLED.show();
-    delay(20);
+    
  for (u_int16_t i = 0; i < LEDS_PER_ROW; i++) {
    lightOnePixelAndFadeFrame(i, 0, gHue, s, v,f);
    gHue++;
@@ -272,8 +275,8 @@ void lightOnePixelAndFadeFrame(u_int16_t x, u_int16_t y, u_int8_t h, u_int8_t s,
     leds[posFor(x, y)] = CHSV(h, s, v); 
     fadeFrame(f);
 
+delay(30);
     FastLED.show();
-    delay(30);
 }
 
 void fadeFrame(u_int8_t f) {
@@ -309,7 +312,7 @@ void fadePixel(u_int16_t x, u_int16_t y,u_int8_t f) {
 void horizontalSnake() {
     u_int16_t fadeBy = 5;
 
-    u_int8_t h = 150;
+    u_int8_t h = random16(255);
     u_int8_t s = 255;
     u_int8_t v = 255;
 
@@ -339,11 +342,12 @@ void horizontalDrunkSnake() {
     u_int16_t y = 4;
     u_int16_t fadeBy = 5;
 
-    u_int8_t h = 150;
+    u_int8_t h = random(0,255);
     u_int8_t s = 255;
     u_int8_t v = 255;
 
     for (u_int16_t x = 0; x < 5 * LEDS_PER_ROW; x++) {
+      h = random(0,255);
         leds[posFor(x % LEDS_PER_ROW, random16(0, ROW_NUM))] = CHSV(h, s, v);
         fadeToBlackBy(leds, NUM_LEDS, fadeBy);
 
@@ -356,4 +360,49 @@ void fadeRow(u_int16_t y, u_int8_t fadeBy) {
     for (u_int16_t i = 0; i < LEDS_PER_ROW; i++) {
         fadePixel(i, y, fadeBy);
     }
+}
+
+void frame_and_hori_snake()
+{
+    u_int16_t fadeBy = 5;
+  
+    u_int8_t h = random(0,255);
+    u_int8_t s = 255;
+    u_int8_t v = 255;
+
+    u_int16_t offset0 = random16(0, LEDS_PER_ROW);
+    u_int16_t offset1 = random16(0, LEDS_PER_ROW);
+    u_int16_t offset2 = random16(0, LEDS_PER_ROW);
+    u_int16_t offset3 = random16(0, LEDS_PER_ROW);
+    u_int16_t offset4 = random16(0, LEDS_PER_ROW);
+    u_int16_t offset5 = random16(0, LEDS_PER_ROW);
+
+
+    for (u_int16_t x = 0; x < 5 * LEDS_PER_ROW; x++) {
+        leds[posFor((x + offset0) % LEDS_PER_ROW, 0)] = CHSV(h, s, v);
+        leds[posFor((x + offset1) % LEDS_PER_ROW, 1)] = CHSV(h, s, v);
+        leds[posFor((x + offset2) % LEDS_PER_ROW, 2)] = CHSV(h, s, v);
+        leds[posFor((x + offset3) % LEDS_PER_ROW, 3)] = CHSV(h, s, v);
+        leds[posFor((x + offset4) % LEDS_PER_ROW, 4)] = CHSV(h, s, v);
+        leds[posFor((x + offset5) % LEDS_PER_ROW, 5)] = CHSV(h, s, v);
+        fadeToBlackBy(leds, NUM_LEDS, fadeBy);
+        h = beatsin16(18,0,250);
+        fill_frame(h+100,s,beatsin16(10,20,150));
+
+        FastLED.show();
+        delay(30);
+    }
+}
+void fill_frame(u_int8_t h, u_int8_t s, u_int8_t v)
+{
+    for (u_int16_t i = 0; i < LEDS_PER_ROW; i++) {
+    leds[posFor(i,0)]=CHSV(h,s,v);
+    leds[posFor(i,ROW_NUM-1)]=CHSV(h,s,v);
+  }
+
+  for (u_int16_t j = 1; j < ROW_NUM - 1; j++) {
+        leds[posFor(0,j)]=CHSV(h,s,v);
+        leds[posFor(LEDS_PER_ROW-1,j)]=CHSV(h,s,v);
+
+  }
 }
