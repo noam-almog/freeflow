@@ -120,8 +120,8 @@ int32_t randomNonRepeatingState() {
 }
 
 u_int16_t posFor(u_int16_t column, u_int16_t row) {
-  if (row %2 == 0)
-    return row * LEDS_PER_ROW + column;
+  if ((row % 2) == 0)
+    return (row * LEDS_PER_ROW) + column;
   else
     return (((row + 1) * LEDS_PER_ROW) - column - 1);
 }
