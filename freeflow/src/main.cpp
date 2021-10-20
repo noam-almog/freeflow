@@ -50,13 +50,13 @@ void paint_pixel(int i);
 void fadeFrame();
 void lightOnePixelAndFadeFrame(u_int16_t x, u_int16_t y, u_int8_t h, u_int8_t s, u_int8_t v);
 void fadePixel(u_int16_t x, u_int16_t y);
-
+void snakePattern();
 typedef void (*SimplePatternList[])();
 
 CRGB leds[NUM_LEDS];
 // List of patterns to cycle through.  Each is defined as a separate function below.
-// SimplePatternList gPatterns = { lightning,bpm,lightning2};
-SimplePatternList gPatterns = { lightning,bpm,juggle,rainbow,rainbowWithGlitter,confetti,pulse};
+SimplePatternList gPatterns = { snakePattern,bpm};
+// SimplePatternList gPatterns = { lightning,bpm,juggle,rainbow,rainbowWithGlitter,confetti,pulse};
 
 
 
