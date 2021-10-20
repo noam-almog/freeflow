@@ -46,8 +46,9 @@ int32_t randomNonRepeatingState();
 u_int16_t posFor(u_int16_t row, u_int16_t column);
 void runOnFrame(int (*f)());
 void paint_pixel(int i);
-void test();
-
+// void test();
+void fadeFrame();
+void lightOnePixelAndFadeFrame(u_int16_t x, u_int16_t y);
 
 
 typedef void (*SimplePatternList[])();
@@ -124,6 +125,7 @@ u_int16_t posFor(u_int16_t row, u_int16_t column) {
   else
     return (((row + 1) * LEDS_PER_ROW) - column);
 //    return (row * LEDS_PER_ROW + (LEDS_PER_ROW - column));
+    // return ((row+1) * LEDS_PER_ROW-(column +1));
 }
 
 void runOnFrame(int (*f)(int i))
@@ -151,11 +153,10 @@ void paint_pixel(int i,u_int8_t h,u_int8_t s,u_int8_t v,uint8_t Delay, uint8_t f
   delay(Delay);
   }
 /////////patterns from here on !
-void test ()
-{
-  runOnFrame(&paint_pixel());
+// void test () {
+  // runOnFrame(&paint_pixel());
  
-  }
+  // }
 
 
 
@@ -376,4 +377,43 @@ void pulse() {
 //   return val + acc;
 // }
 
+
+void snakePattern() {
+
+  for (u_int16_t i = 0; i < LEDS_PER_ROW; i++) {
+    lightOnePixelAndFadeFrame(0, i);
+  }
+
+  for (u_int16_t i = 1; i < ROW_NUM; i++) {
+    lightOnePixelAndFadeFrame(LEDS_PER_ROW, i);
+  }
+
+  for (u_int16_t i = LEDS_PER_ROW - 2; i >= 0; i--) {
+    lightOnePixelAndFadeFrame(ROW_NUM - 1, i);
+  }
+
+  for (u_int16_t i = ROW_NUM - 2; i >= 0; i--) {
+    lightOnePixelAndFadeFrame(0, i);
+  }
+}
+
+void lightOnePixelAndFadeFrame(u_int16_t x, u_int16_t y) {
+    leds[posFor(x, y)] = 10000; // todo: set value for led correctly
+    fadeFrame();
+
+    FastLED.show();
+    delay(30);
+}
+
+void fadeFrame() {
+  for (u_int16_t i = 0; i < LEDS_PER_ROW; i++) {
+    leds[posFor(0, i)] -= 10; // todo: fade one pixel correctly
+    leds[posFor(ROW_NUM, i)] -= 10;
+  }
+
+  for (u_int16_t j = 1; j < ROW_NUM - 1; j++) {
+    leds[posFor(0, j)] -= 10;
+    leds[posFor(LEDS_PER_ROW, j)] -= 10;
+  }
+}
 
