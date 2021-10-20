@@ -377,26 +377,29 @@ void pulse() {
 
 
 void snakePattern() {
+  u_int8_t h = 1;
+  u_int8_t s = 2;
+  u_int8_t v = 3;
 
   for (u_int16_t i = 0; i < LEDS_PER_ROW; i++) {
-    lightOnePixelAndFadeFrame(0, i);
+    lightOnePixelAndFadeFrame(i, 0, h, v, s);
   }
 
   for (u_int16_t i = 1; i < ROW_NUM; i++) {
-    lightOnePixelAndFadeFrame(LEDS_PER_ROW, i);
+    lightOnePixelAndFadeFrame(LEDS_PER_ROW - 1, i, h, v, s);
   }
 
   for (u_int16_t i = LEDS_PER_ROW - 2; i >= 0; i--) {
-    lightOnePixelAndFadeFrame(ROW_NUM - 1, i);
+    lightOnePixelAndFadeFrame(i, ROW_NUM - 1, h, v, s);
   }
 
   for (u_int16_t i = ROW_NUM - 2; i >= 0; i--) {
-    lightOnePixelAndFadeFrame(0, i);
+    lightOnePixelAndFadeFrame(0, i, h, v, s);
   }
 }
 
-void lightOnePixelAndFadeFrame(u_int16_t x, u_int16_t y) {
-    leds[posFor(x, y)] = 10000; // todo: set value for led correctly
+void lightOnePixelAndFadeFrame(u_int16_t x, u_int16_t y, u_int8_t h,u_int8_t s,u_int8_t v) {
+    leds[posFor(x, y)] = CRGB(h, s, v); 
     fadeFrame();
 
     FastLED.show();
@@ -405,13 +408,13 @@ void lightOnePixelAndFadeFrame(u_int16_t x, u_int16_t y) {
 
 void fadeFrame() {
   for (u_int16_t i = 0; i < LEDS_PER_ROW; i++) {
-    leds[posFor(0, i)] -= 10; // todo: fade one pixel correctly
-    leds[posFor(ROW_NUM, i)] -= 10;
+    leds[posFor(i, 0)] -= 10; // todo: fade one pixel correctly
+    leds[posFor(i, ROW_NUM - 1)] -= 10;
   }
 
   for (u_int16_t j = 1; j < ROW_NUM - 1; j++) {
     leds[posFor(0, j)] -= 10;
-    leds[posFor(LEDS_PER_ROW, j)] -= 10;
+    leds[posFor(LEDS_PER_ROW -1 , j)] -= 10;
   }
 }
 
