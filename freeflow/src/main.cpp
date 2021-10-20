@@ -123,7 +123,7 @@ u_int16_t posFor(u_int16_t column, u_int16_t row) {
   if (row %2 == 0)
     return row * LEDS_PER_ROW + column;
   else
-    return (((row + 1) * LEDS_PER_ROW) - (column + 1));
+    return (((row + 1) * LEDS_PER_ROW) - column - 1);
 }
 
 void paint_pixel(int i,u_int8_t h,u_int8_t s,u_int8_t v,uint8_t Delay, uint8_t fade)
