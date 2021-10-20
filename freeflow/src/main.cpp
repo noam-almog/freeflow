@@ -49,7 +49,7 @@ void paint_pixel(int i);
 // void test();
 void fadeFrame();
 void lightOnePixelAndFadeFrame(u_int16_t x, u_int16_t y, u_int8_t h, u_int8_t s, u_int8_t v);
-
+void fadePixel(u_int16_t x, u_int16_t y);
 
 typedef void (*SimplePatternList[])();
 
@@ -408,14 +408,31 @@ void lightOnePixelAndFadeFrame(u_int16_t x, u_int16_t y, u_int8_t h, u_int8_t s,
 
 void fadeFrame() {
   for (u_int16_t i = 0; i < LEDS_PER_ROW; i++) {
-    leds[posFor(i, 0)] -= 10; // todo: fade one pixel correctly
-    leds[posFor(i, ROW_NUM - 1)] -= 10;
-    leds[posFor(i, ROW_NUM - 1)] = 
+    fadePixel(i, 0);
+    fadePixel(i, ROW_NUM - 1);
   }
 
   for (u_int16_t j = 1; j < ROW_NUM - 1; j++) {
-    leds[posFor(0, j)] -= 10;
-    leds[posFor(LEDS_PER_ROW -1 , j)] -= 10;
+    fadePixel(0, j);
+    fadePixel(LEDS_PER_ROW -1 , j);
   }
+}
+
+void fadePixel(u_int16_t x, u_int16_t y) {
+    if (leds[posFor(x, y)].r > 10) {
+        leds[posFor(x, y)].r -= 10;
+    } else {
+        leds[posFor(x, y)].r = 0;
+    }
+    if (leds[posFor(x, y)].g > 10) {
+        leds[posFor(x, y)].g -= 10;
+    } else {
+        leds[posFor(x, y)].g = 0;
+    }
+    if (leds[posFor(x, y)].b > 10) {
+        leds[posFor(x, y)].b -= 10;
+    } else {
+        leds[posFor(x, y)].b = 0;
+    }
 }
 
