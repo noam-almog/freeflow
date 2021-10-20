@@ -307,16 +307,28 @@ void fadePixel(u_int16_t x, u_int16_t y,u_int8_t f) {
 }
 
 void horizontalSnake() {
-    u_int16_t y = 4;
     u_int16_t fadeBy = 5;
 
     u_int8_t h = 150;
     u_int8_t s = 255;
     u_int8_t v = 255;
 
+    u_int16_t offset0 = random16(0, LEDS_PER_ROW);
+    u_int16_t offset1 = random16(0, LEDS_PER_ROW);
+    u_int16_t offset2 = random16(0, LEDS_PER_ROW);
+    u_int16_t offset3 = random16(0, LEDS_PER_ROW);
+    u_int16_t offset4 = random16(0, LEDS_PER_ROW);
+    u_int16_t offset5 = random16(0, LEDS_PER_ROW);
+
+
     for (u_int16_t x = 0; x < 5 * LEDS_PER_ROW; x++) {
-        leds[posFor(x % LEDS_PER_ROW, y)] = CHSV(h, s, v);
-        fadeRow(y, fadeBy);
+        leds[posFor((x + offset0) % LEDS_PER_ROW, 0)] = CHSV(h, s, v);
+        leds[posFor((x + offset1) % LEDS_PER_ROW, 1)] = CHSV(h, s, v);
+        leds[posFor((x + offset2) % LEDS_PER_ROW, 2)] = CHSV(h, s, v);
+        leds[posFor((x + offset3) % LEDS_PER_ROW, 3)] = CHSV(h, s, v);
+        leds[posFor((x + offset4) % LEDS_PER_ROW, 4)] = CHSV(h, s, v);
+        leds[posFor((x + offset5) % LEDS_PER_ROW, 5)] = CHSV(h, s, v);
+        fadeToBlackBy(leds, NUM_LEDS, fadeBy);
 
         FastLED.show();
         delay(30);
