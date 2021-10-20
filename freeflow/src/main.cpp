@@ -123,9 +123,7 @@ u_int16_t posFor(u_int16_t row, u_int16_t column) {
   if (row %2 == 0)
     return row * LEDS_PER_ROW + column;
   else
-    return (((row + 1) * LEDS_PER_ROW) - column);
-//    return (row * LEDS_PER_ROW + (LEDS_PER_ROW - column));
-    // return ((row+1) * LEDS_PER_ROW-(column +1));
+    return (((row + 1) * LEDS_PER_ROW) - (column + 1));
 }
 
 void runOnFrame(int (*f)(int i))
