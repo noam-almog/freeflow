@@ -52,13 +52,15 @@ void lightOnePixelAndFadeFrame(u_int16_t x, u_int16_t y, u_int8_t h, u_int8_t s,
 void fadePixel(u_int16_t x, u_int16_t y,u_int8_t f);
 void snakePattern();
 void horizontalSnake();
+void horizontalDrunkSnake();
+
 void fadeRow(u_int16_t y, u_int8_t fadeBy);
 
 typedef void (*SimplePatternList[])();
 
 CRGB leds[NUM_LEDS];
 // List of patterns to cycle through.  Each is defined as a separate function below.
-SimplePatternList gPatterns = { snakePattern, bpm, horizontalSnake };
+SimplePatternList gPatterns = { snakePattern, bpm, horizontalSnake, horizontalDrunkSnake };
 // SimplePatternList gPatterns = { lightning,bpm,juggle,rainbow,rainbowWithGlitter,confetti,pulse};
 
 
@@ -315,6 +317,23 @@ void horizontalSnake() {
     for (u_int16_t x = 0; x < 5 * LEDS_PER_ROW; x++) {
         leds[posFor(x % LEDS_PER_ROW, y)] = CHSV(h, s, v);
         fadeRow(y, fadeBy);
+
+        FastLED.show();
+        delay(30);
+    }
+}
+
+void horizontalDrunkSnake() {
+    u_int16_t y = 4;
+    u_int16_t fadeBy = 5;
+
+    u_int8_t h = 150;
+    u_int8_t s = 255;
+    u_int8_t v = 255;
+
+    for (u_int16_t x = 0; x < 5 * LEDS_PER_ROW; x++) {
+        leds[posFor(x % LEDS_PER_ROW, random16(0, ROW_NUM))] = CHSV(h, s, v);
+        fadeToBlackBy(leds, NUM_LEDS, fadeBy);
 
         FastLED.show();
         delay(30);
