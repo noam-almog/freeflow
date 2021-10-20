@@ -47,9 +47,9 @@ u_int16_t posFor(u_int16_t column, u_int16_t row);
 void runOnFrame(int (*f)());
 void paint_pixel(int i);
 // void test();
-void fadeFrame();
-void lightOnePixelAndFadeFrame(u_int16_t x, u_int16_t y, u_int8_t h, u_int8_t s, u_int8_t v);
-void fadePixel(u_int16_t x, u_int16_t y);
+void fadeFrame(u_int8_t f);
+void lightOnePixelAndFadeFrame(u_int16_t x, u_int16_t y, u_int8_t h, u_int8_t s, u_int8_t v,u_int8_t f);
+void fadePixel(u_int16_t x, u_int16_t y,u_int8_t f);
 void snakePattern();
 typedef void (*SimplePatternList[])();
 
@@ -79,6 +79,9 @@ int spot2=outer;
 
 
 void setup() {
+  Serial.begin(115200);
+
+  
   delay(3000); // 3 second delay for recovery
 
   // tell FastLED about the LED strip configuration
@@ -92,7 +95,7 @@ void loop() {
   // Call the current pattern function once, updating the 'leds' array
   executeCurrentPatten();
 
-  FastLED.show();
+  // FastLED.show();
 
   // // do some periodic updates
   EVERY_N_MILLISECONDS( 10 ) { gHue++; } // slowly cycle the "base color" through the rainbow
@@ -121,22 +124,19 @@ int32_t randomNonRepeatingState() {
 
 u_int16_t posFor(u_int16_t column, u_int16_t row) {
   if ((row % 2) == 0)
+  {
+    // Serial.println((row * LEDS_PER_ROW) + column);
     return (row * LEDS_PER_ROW) + column;
+  }
   else
+  {
+    // Serial.println((((row + 1) * LEDS_PER_ROW) - column - 1));
+
     return (((row + 1) * LEDS_PER_ROW) - column - 1);
+  }
 }
 
-void paint_pixel(int i,u_int8_t h,u_int8_t s,u_int8_t v,uint8_t Delay, uint8_t fade)
-{
-  leds[i]=CRGB(h,s,v);
-  fadeToBlackBy(leds,NUM_LEDS,fade);
-  delay(Delay);
-  }
 /////////patterns from here on !
-// void test () {
-  // runOnFrame(&paint_pixel());
- 
-  // }
 
 
 
@@ -179,7 +179,6 @@ void sinelon() {
 
 void bpm() {
   // colored stripes pulsing at a defined Beats-Per-Minute (BPM)
-  uint8_t BeatsPerMinute = 40;
   CRGBPalette16 palette = PartyColors_p;
   // uint8_t beat = beatsin8( BeatsPerMinute, 64, 255);
   
@@ -234,193 +233,69 @@ void pulse() {
   }
 }
 
-// int fill_bit(int start,bool fade,bool dir) {
-//   leds[start]=CHSV(gHue, 255,255);
-//   if (fade)
-//     fadeToBlackBy(leds, NUM_LEDS, 10);
-//   if (dir)
-//     return start+1;
-//   else
-//     return start-1;
-// }
-// void circle(bool dir,bool fade) {
-//    spot= fill_bit(spot,fade,dir);
-//     if (dir) {
-//       spot=spot%outer;
-//     } else {
-//       if(spot==-1)
-//         spot=outer-1;
-//     }
-// }
-// void inner_circle(bool dir,bool fade) {
-//   spot2=  fill_bit(spot2,fade,dir);
-//   if (dir) {
-//     if(spot2==NUM_LEDS)
-//       spot2=outer;
-//   } else {
-//   if (spot2 == outer-1)
-//     spot2=NUM_LEDS-1;
-//   }
-// }
-// void shell() {
-// //   inner_circle(0,0);
-//   circle(0,0);
-//   delay(30);
-//   if (dir) {
-//     if (val < 255)
-//       val=fade_bit(val,1,1,gHue);
-//     else
-//       dir=false;
-//   } else {
-//     if (val > 0)
-//       val=fade_bit(val,0,1,gHue);
-//     else
-//     dir=true;
-//   }
-// }
-// void shell2() {
-//   inner_circle(0,0);
-//   circle(0,0);
-//   delay(20);
-// }
-// void shell3() {
-//   //  inner_circle(0,1);
-//   // circle(0,0);
-//   delay(20);
-//   if (dir) {
-//     if (val<255)
-//       val=fade_bit(val,1,1,gHue+100);
-//     else
-//     dir=false;
-//   } else {
-//     if (val > 0)
-//       val=fade_bit(val,0,1,gHue+150);
-//     else
-//       dir=true;
-//   }
-//   if (dir2) {
-//     if (val2<255)
-//       val2=fade_bit(val2,1,0,gHue);
-//     else
-//       dir2=false;
-//     } else {
-//       if (val2 > 0)
-//         val2=fade_bit(val2,0,0,gHue);
-//       else
-//         dir2=true;
-//     }
-// }
-// void shell4() {
-//   inner_circle(0,1);
-//   // circle(0,0);
-//   delay(20);
-// // if(dir)
-// // {
-// //   if (val<255)
-// //   val=fade_bit(val,1,1,gHue);
-// //   else
-// //   dir=false;
-// // }
-// // else
-// // {
-// //     if (val>0)
-// //   val=fade_bit(val,0,1,gHue);
-// //   else
-// //   dir=true;
-// // }
-//   if (dir2) {
-//     if (val2 < 255)
-//       val2=fade_bit(val2,1,0,gHue+100);
-//     else
-//       dir2=false;
-//   } else {
-//     if (val2 > 0)
-//       val2=fade_bit(val2,0,0,gHue);
-//     else
-//       dir2=true;
-//   }
-// }
-// int fade_bit(int val, bool dir, bool in, uint8_t hue) {
-//   int acc = -1;
-//   if (dir) {
-//     acc = 1;
-//   }
-//   if (in) {
-//     for (int i=outer; i<NUM_LEDS; i++) {
-//       leds[i] = CHSV(hue, 255, val + acc);
-//     }
-//   } else {
-//     for (int i=0; i < outer; i++) {
-//       leds[i] = CHSV(hue, 255, val + acc);
-//     }
-//   }
-//   return val + acc;
-// }
-
 
 void snakePattern() {
-  u_int8_t h = 1;
+  u_int8_t h = 150;
   u_int8_t s = 255;
   u_int8_t v = 255;
-
-  leds[posFor(0, 0)] = CRGB(h, s, v);
-  leds[posFor(0, 1)] = CRGB(h, s, v);
-  leds[posFor(0, 2)] = CRGB(h, s, v);
-  leds[posFor(0, 3)] = CRGB(h, s, v);
-  leds[posFor(0, 4)] = CRGB(h, s, v);
-  leds[posFor(0, 5)] = CRGB(h, s, v);
+  u_int8_t f=5;
+  
     FastLED.show();
-    delay(30);
-//  for (u_int16_t i = 0; i < LEDS_PER_ROW; i++) {
-//    lightOnePixelAndFadeFrame(i, 0, h, v, s);
-//  }
-//
-//  for (u_int16_t i = 1; i < ROW_NUM; i++) {
-//    lightOnePixelAndFadeFrame(LEDS_PER_ROW - 1, i, h, v, s);
-//  }
-//
-//  for (u_int16_t i = LEDS_PER_ROW - 2; i >= 0; i--) {
-//    lightOnePixelAndFadeFrame(i, ROW_NUM - 1, h, v, s);
-//  }
-//
-//  for (u_int16_t i = ROW_NUM - 2; i >= 0; i--) {
-//    lightOnePixelAndFadeFrame(0, i, h, v, s);
-//  }
+    delay(20);
+ for (u_int16_t i = 0; i < LEDS_PER_ROW; i++) {
+   lightOnePixelAndFadeFrame(i, 0, gHue, s, v,f);
+   gHue++;
+ }
+
+ for (u_int16_t i = 1; i < ROW_NUM; i++) {
+   lightOnePixelAndFadeFrame(LEDS_PER_ROW - 1, i, gHue, s, v,f);
+  gHue++;
+ }
+
+ for (u_int16_t i = LEDS_PER_ROW - 2; i > 0; i--) {
+   lightOnePixelAndFadeFrame(i, ROW_NUM - 1, gHue, s, v,f);
+ gHue--;
+ }
+
+ for (u_int16_t i = ROW_NUM - 1; i > 0; i--) {
+   lightOnePixelAndFadeFrame(0, i, gHue, s, v,f);
+   gHue--;
+ }
 }
 
-void lightOnePixelAndFadeFrame(u_int16_t x, u_int16_t y, u_int8_t h, u_int8_t s, u_int8_t v) {
-    leds[posFor(x, y)] = CRGB(h, s, v); 
-    fadeFrame();
+void lightOnePixelAndFadeFrame(u_int16_t x, u_int16_t y, u_int8_t h, u_int8_t s, u_int8_t v,uint8_t f) {
+    leds[posFor(x, y)] = CHSV(h, s, v); 
+    fadeFrame(f);
 
     FastLED.show();
     delay(30);
 }
 
-void fadeFrame() {
+void fadeFrame(u_int8_t f) {
   for (u_int16_t i = 0; i < LEDS_PER_ROW; i++) {
-    fadePixel(i, 0);
-    fadePixel(i, ROW_NUM - 1);
+    fadePixel(i, 0,f);
+    fadePixel(i, ROW_NUM - 1,f);
   }
 
-  for (u_int16_t j = 1; j < ROW_NUM - 2; j++) {
-    fadePixel(0, j);
-    fadePixel(LEDS_PER_ROW -1 , j);
+  for (u_int16_t j = 1; j < ROW_NUM - 1; j++) {
+    fadePixel(0, j,f);
+    fadePixel(LEDS_PER_ROW -1 , j,f);
   }
 }
 
-void fadePixel(u_int16_t x, u_int16_t y) {
-    if (leds[posFor(x, y)].r > 10) {
-        leds[posFor(x, y)].r -= 10;
+void fadePixel(u_int16_t x, u_int16_t y,u_int8_t f) {
+    if (leds[posFor(x, y)].r > f) {
+        leds[posFor(x, y)].r -= f;
     } else {
         leds[posFor(x, y)].r = 0;
     }
-    if (leds[posFor(x, y)].g > 10) {
-        leds[posFor(x, y)].g -= 10;
+    if (leds[posFor(x, y)].g > f) {
+        leds[posFor(x, y)].g -= f;
     } else {
         leds[posFor(x, y)].g = 0;
     }
-    if (leds[posFor(x, y)].b > 10) {
-        leds[posFor(x, y)].b -= 10;
+    if (leds[posFor(x, y)].b > f) {
+        leds[posFor(x, y)].b -= f;
     } else {
         leds[posFor(x, y)].b = 0;
     }
