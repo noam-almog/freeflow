@@ -48,7 +48,7 @@ void runOnFrame(int (*f)());
 void paint_pixel(int i);
 // void test();
 void fadeFrame();
-void lightOnePixelAndFadeFrame(u_int16_t x, u_int16_t y);
+void lightOnePixelAndFadeFrame(u_int16_t x, u_int16_t y, u_int8_t h, u_int8_t s, u_int8_t v);
 
 
 typedef void (*SimplePatternList[])();
@@ -380,7 +380,7 @@ void snakePattern() {
   u_int8_t h = 1;
   u_int8_t s = 2;
   u_int8_t v = 3;
-
+  
   for (u_int16_t i = 0; i < LEDS_PER_ROW; i++) {
     lightOnePixelAndFadeFrame(i, 0, h, v, s);
   }
@@ -398,7 +398,7 @@ void snakePattern() {
   }
 }
 
-void lightOnePixelAndFadeFrame(u_int16_t x, u_int16_t y, u_int8_t h,u_int8_t s,u_int8_t v) {
+void lightOnePixelAndFadeFrame(u_int16_t x, u_int16_t y, u_int8_t h, u_int8_t s, u_int8_t v) {
     leds[posFor(x, y)] = CRGB(h, s, v); 
     fadeFrame();
 
