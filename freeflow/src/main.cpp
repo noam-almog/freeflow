@@ -1,5 +1,7 @@
 #include <Arduino.h>
 #include <FastLED.h>
+#include "OctoWS2811.h"
+
 
 #if defined(FASTLED_VERSION) && (FASTLED_VERSION < 3001000)
 #warning "Requires FastLED 3.1 or later; check github for latest code."
@@ -18,6 +20,11 @@
 
 
 
+DMAMEM int displayMemory[NUM_LEDS*6];
+int drawingMemory[NUM_LEDS*6];
+const int config = WS2811_GRB | WS2811_800kHz;
+OctoWS2811 ledz(NUM_LEDS, displayMemory, drawingMemory, config);
+
 //#define UP
 // i hate git!
 //#define DOWN
@@ -33,14 +40,7 @@ void rainbowWithGlitter();
 void lightning2();
 void confetti();
 void lightning();
-int fill_bit(int start,bool fade,bool dir);
-void circle(bool dir,bool fade);
-void inner_circle(bool dir,bool fade);
-void shell();
-void shell2();
-void shell3();
-void shell4();
-int fade_bit(int val,bool dir,bool in,uint8_t hue);
+
 void executeCurrentPatten();
 int32_t randomNonRepeatingState();
 u_int16_t posFor(u_int16_t column, u_int16_t row);
@@ -49,6 +49,8 @@ void paint_pixel(int i);
 void fadeFrame(u_int8_t f);
 void lightOnePixelAndFadeFrame(u_int16_t x, u_int16_t y, u_int8_t h, u_int8_t s, u_int8_t v,u_int8_t f);
 void fadePixel(u_int16_t x, u_int16_t y,u_int8_t f);
+
+void render();
 
 void snakePattern();
 void horizontalSnake();
@@ -67,7 +69,7 @@ typedef void (*SimplePatternList[])();
 
 CRGB leds[NUM_LEDS];
 // List of patterns to cycle through.  Each is defined as a separate function below.
-SimplePatternList gPatterns = { snakePattern, bpm, horizontalSnake, horizontalDrunkSnake ,frame_and_hori_snake, wormPattern, horizontalDrunkSnakeReverse, snakePatternReverse };
+SimplePatternList gPatterns = { snakePatternReverse,wormPattern,snakePattern, bpm, horizontalSnake, horizontalDrunkSnake ,frame_and_hori_snake,  horizontalDrunkSnakeReverse };
 // SimplePatternList gPatterns = { lightning,bpm,juggle,rainbow,rainbowWithGlitter,confetti,pulse};
 
 
@@ -79,15 +81,11 @@ uint8_t prevState = 1; // uninitiazlied
 
 uint8_t gHue = 0; // rotating "base color" used by many of the patterns
 uint8_t ro = 0;
-uint8_t outer= 77;
 uint8_t val=0;
 uint8_t val2=255;
 uint8_t GA=0;
 
-bool dir2=false;
-bool dir=true;
-int spot=0;
-int spot2=outer;
+
 
 
 void setup() {
@@ -95,12 +93,11 @@ void setup() {
 
   
   delay(3000); // 3 second delay for recovery
-
+  randomSeed(analogRead(3));
   // tell FastLED about the LED strip configuration
-  FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
-  //FastLED.addLeds<LED_TYPE,DATA_PIN,CLK_PIN,COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
-
-  // set master brightness control
+  // FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+  ledz.begin();
+  ledz.show();
 }
 
 void loop() {
@@ -111,7 +108,7 @@ void loop() {
 
   // // do some periodic updates
   EVERY_N_MILLISECONDS( 10 ) { gHue++; } // slowly cycle the "base color" through the rainbow
-  EVERY_N_SECONDS( 2 ) { nextPattern(); } // change patterns periodically
+  EVERY_N_SECONDS( 40 ) { nextPattern(); } // change patterns periodically
   EVERY_N_SECONDS( 5 ) { GA++; } // change patterns periodically
 }
 
@@ -159,6 +156,7 @@ void rainbow() {
   // FastLED's built-in rainbow generator
   fill_rainbow( leds, NUM_LEDS, gHue, 5);
   delay(10);
+  render();
 }
 
 void rainbowWithGlitter() {
@@ -178,16 +176,18 @@ void confetti() {
   fadeToBlackBy(leds, NUM_LEDS, 10);
   int pos = random16(NUM_LEDS);
   leds[pos] += CHSV( gHue + random8(64), 200, 255);
+  render();
 }
 
 void sinelon() {
   // a colored dot sweeping back and forth, with fading trails
   fadeToBlackBy( leds, NUM_LEDS, 20);
-  int pos = beatsin16( 13, 0, outer-1 );
-  int pos2 = beatsin16( 13, outer, NUM_LEDS-1 );
+  int pos = beatsin16( 13, 0, 40-1 );
+  int pos2 = beatsin16( 13, 40, NUM_LEDS-1 );
 
   leds[pos2] += CHSV( gHue, 255, beatsin8( 60, 64, 255));
   leds[pos] += CHSV( gHue+16, 255, beatsin8( 50, 0, 70));
+  render();
 }
 
 void bpm() {
@@ -202,7 +202,7 @@ void bpm() {
     for (int i = NUM_LEDS-1; i > 0; i--)  
       leds[i] = ColorFromPalette(palette, gHue+(i*2), 255);
   }
-        FastLED.show();
+        render();
 }
 
 void juggle() {
@@ -212,6 +212,7 @@ void juggle() {
   for (int i = 0; i < 8; i++) {
     leds[beatsin16( i+7, 0, NUM_LEDS-1 )] |= CHSV(dothue, 200, 255);
     dothue += 32;
+    render();
   }
 }
 
@@ -229,7 +230,8 @@ void lightning() {
 
     ro=ro+64;
   };
-};
+  render();
+}
 
 
 
@@ -241,7 +243,7 @@ void pulse() {
     leds[i+2*NUM_LEDS/4] = CHSV( gHue ,255, 255);
     leds[i+3*NUM_LEDS/4] = CHSV( gHue ,255, 255);
 
-    FastLED.show();
+    render();
     fadeToBlackBy(leds, NUM_LEDS, 10);
     delay(30);
   }
@@ -281,7 +283,7 @@ void snakePatternReverse() {
   u_int8_t f=5;
   
     
- for (u_int16_t i = LEDS_PER_ROW - 1; i >= 0 ; i--) {
+ for (u_int16_t i = LEDS_PER_ROW - 1; i > 0 ; i--) {
    lightOnePixelAndFadeFrame(i, 0, gHue, s, v,f);
    gHue++;
  }
@@ -307,9 +309,8 @@ void snakePatternReverse() {
 void lightOnePixelAndFadeFrame(u_int16_t x, u_int16_t y, u_int8_t h, u_int8_t s, u_int8_t v,uint8_t f) {
     leds[posFor(x, y)] = CHSV(h, s, v); 
     fadeFrame(f);
-
-delay(30);
-    FastLED.show();
+    delay(30);
+    render();
 }
 
 void fadeFrame(u_int8_t f) {
@@ -345,7 +346,7 @@ void fadePixel(u_int16_t x, u_int16_t y,u_int8_t f) {
 void horizontalSnake() {
     u_int16_t fadeBy = 5;
 
-    u_int8_t h = random16(255);
+    u_int8_t h = random8();
     u_int8_t s = 255;
     u_int8_t v = 255;
 
@@ -366,7 +367,7 @@ void horizontalSnake() {
         leds[posFor((x + offset5) % LEDS_PER_ROW, 5)] = CHSV(h, s, v);
         fadeToBlackBy(leds, NUM_LEDS, fadeBy);
 
-        FastLED.show();
+        render();   
         delay(30);
     }
 }
@@ -383,7 +384,7 @@ void horizontalDrunkSnake() {
         leds[posFor(x % LEDS_PER_ROW, random16(0, ROW_NUM))] = CHSV(h, s, v);
         fadeToBlackBy(leds, NUM_LEDS, fadeBy);
 
-        FastLED.show();
+        render();
         delay(30);
     }
 }
@@ -400,7 +401,7 @@ void horizontalDrunkSnakeReverse() {
         leds[posFor(x % LEDS_PER_ROW, random16(0, ROW_NUM))] = CHSV(h, s, v);
         fadeToBlackBy(leds, NUM_LEDS, fadeBy);
 
-        FastLED.show();
+        render();
         delay(30);
     }
 }
@@ -438,7 +439,7 @@ void frame_and_hori_snake()
         h = beatsin16(18,0,250);
         fill_frame(h+100,s,beatsin16(10,20,150));
 
-        FastLED.show();
+        render();
         delay(30);
     }
 }
@@ -496,17 +497,14 @@ void wormPattern() {
   int16_t*   d5 = new int16_t(2);
   randomLocation(l5);
   randomDir(d5);
-
   for (u_int16_t j = 0; j < ROW_NUM + 5; j++) {
     l1 = wormMove(l1, d1, hsv);
     l2 = wormMove(l2, d2, hsv);
     l3 = wormMove(l3, d3, hsv);
     l4 = wormMove(l4, d4, hsv);
     l5 = wormMove(l5, d5, hsv);
-
     fadeToBlackBy(leds, NUM_LEDS, fadeBy);
-
-    FastLED.show();
+    render();
     delay(30);    
   }
 
@@ -525,6 +523,7 @@ void wormPattern() {
 }
 
 u_int16_t* wormMove(u_int16_t* location, int16_t* direction, u_int8_t* hsv) {
+
   int newX = direction[0] + location[0];
   int newY = direction[1] + location[1];
   if (newY >= 0 && newY < ROW_NUM && newX >= 0 && newX < LEDS_PER_ROW) {
@@ -533,4 +532,17 @@ u_int16_t* wormMove(u_int16_t* location, int16_t* direction, u_int8_t* hsv) {
     location[1] = newY;
   }
   return location;
+}
+
+void render()
+{
+for(int i = 0; i < NUM_LEDS; i++) {
+        CRGB fastLedRGB = leds[i];
+        int octowsColor = ledz.color(fastLedRGB.r, fastLedRGB.g, fastLedRGB.b);
+        ledz.setPixel( i, octowsColor);
+      }
+  
+  // send the 'leds' array out to the actual LED strip
+  ledz.show();
+
 }
