@@ -49,9 +49,12 @@ void paint_pixel(int i);
 void fadeFrame(u_int8_t f);
 void lightOnePixelAndFadeFrame(u_int16_t x, u_int16_t y, u_int8_t h, u_int8_t s, u_int8_t v,u_int8_t f);
 void fadePixel(u_int16_t x, u_int16_t y,u_int8_t f);
+
 void snakePattern();
 void horizontalSnake();
 void horizontalDrunkSnake();
+void horizontalDrunkSnakeReverse();
+void snakePatternReverse();
 
 void frame_and_hori_snake();
 void fill_frame(u_int8_t h, u_int8_t s, u_int8_t v);
@@ -64,7 +67,7 @@ typedef void (*SimplePatternList[])();
 
 CRGB leds[NUM_LEDS];
 // List of patterns to cycle through.  Each is defined as a separate function below.
-SimplePatternList gPatterns = { snakePattern, bpm, horizontalSnake, horizontalDrunkSnake ,frame_and_hori_snake, wormMove };
+SimplePatternList gPatterns = { snakePattern, bpm, horizontalSnake, horizontalDrunkSnake ,frame_and_hori_snake, wormPattern, horizontalDrunkSnakeReverse, snakePatternReverse };
 // SimplePatternList gPatterns = { lightning,bpm,juggle,rainbow,rainbowWithGlitter,confetti,pulse};
 
 
@@ -272,6 +275,35 @@ void snakePattern() {
  }
 }
 
+void snakePatternReverse() {
+  u_int8_t s = 255;
+  u_int8_t v = 255;
+  u_int8_t f=5;
+  
+    
+ for (u_int16_t i = LEDS_PER_ROW - 1; i >= 0 ; i--) {
+   lightOnePixelAndFadeFrame(i, 0, gHue, s, v,f);
+   gHue++;
+ }
+
+ for (u_int16_t i = 0; i < ROW_NUM; i++) {
+   lightOnePixelAndFadeFrame(0, i, gHue, s, v,f);
+   gHue--;
+ }
+
+ for (u_int16_t i = 1; i < LEDS_PER_ROW - 2; i++) {
+   lightOnePixelAndFadeFrame(i, ROW_NUM - 1, gHue, s, v,f);
+   gHue--;
+ }
+
+ for (u_int16_t i = ROW_NUM - 1; i > 0 ; i--) {
+   lightOnePixelAndFadeFrame(LEDS_PER_ROW - 1, i, gHue, s, v,f);
+   gHue++;
+ }
+
+
+}
+
 void lightOnePixelAndFadeFrame(u_int16_t x, u_int16_t y, u_int8_t h, u_int8_t s, u_int8_t v,uint8_t f) {
     leds[posFor(x, y)] = CHSV(h, s, v); 
     fadeFrame(f);
@@ -340,7 +372,6 @@ void horizontalSnake() {
 }
 
 void horizontalDrunkSnake() {
-    u_int16_t y = 4;
     u_int16_t fadeBy = 5;
 
     u_int8_t h = random(0,255);
@@ -348,7 +379,24 @@ void horizontalDrunkSnake() {
     u_int8_t v = 255;
 
     for (u_int16_t x = 0; x < 5 * LEDS_PER_ROW; x++) {
-      h = random(0,255);
+        h = random(0,255);
+        leds[posFor(x % LEDS_PER_ROW, random16(0, ROW_NUM))] = CHSV(h, s, v);
+        fadeToBlackBy(leds, NUM_LEDS, fadeBy);
+
+        FastLED.show();
+        delay(30);
+    }
+}
+
+void horizontalDrunkSnakeReverse() {
+    u_int16_t fadeBy = 5;
+
+    u_int8_t h = random(0,255);
+    u_int8_t s = 255;
+    u_int8_t v = 255;
+
+    for (u_int16_t x = 5 * LEDS_PER_ROW; x > 0; x--) {
+        h = random(0,255);
         leds[posFor(x % LEDS_PER_ROW, random16(0, ROW_NUM))] = CHSV(h, s, v);
         fadeToBlackBy(leds, NUM_LEDS, fadeBy);
 
