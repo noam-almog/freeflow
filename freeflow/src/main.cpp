@@ -57,10 +57,14 @@ void horizontalSnake();
 void horizontalDrunkSnake();
 void horizontalDrunkSnakeReverse();
 void snakePatternReverse();
+void duelhorizontalSnake() ;
+
 
 void frame_and_hori_snake();
 void fill_frame(u_int8_t h, u_int8_t s, u_int8_t v);
 void fadeRow(u_int16_t y, u_int8_t fadeBy);
+void horizontal_wave();
+void horizontal_wave2();
 
 void wormPattern();
 u_int16_t* wormMove(u_int16_t* location, int16_t* direction, u_int8_t* hsv);
@@ -69,7 +73,7 @@ typedef void (*SimplePatternList[])();
 
 CRGB leds[NUM_LEDS];
 // List of patterns to cycle through.  Each is defined as a separate function below.
-SimplePatternList gPatterns = { snakePatternReverse,wormPattern,snakePattern, bpm, horizontalSnake, horizontalDrunkSnake ,frame_and_hori_snake,  horizontalDrunkSnakeReverse };
+SimplePatternList gPatterns = {horizontal_wave2, horizontal_wave,duelhorizontalSnake, snakePatternReverse,wormPattern,snakePattern, bpm, horizontalSnake, horizontalDrunkSnake ,frame_and_hori_snake,  horizontalDrunkSnakeReverse };
 // SimplePatternList gPatterns = { lightning,bpm,juggle,rainbow,rainbowWithGlitter,confetti,pulse};
 
 
@@ -108,7 +112,7 @@ void loop() {
 
   // // do some periodic updates
   EVERY_N_MILLISECONDS( 10 ) { gHue++; } // slowly cycle the "base color" through the rainbow
-  EVERY_N_SECONDS( 40 ) { nextPattern(); } // change patterns periodically
+  EVERY_N_SECONDS( 10 ) { nextPattern(); } // change patterns periodically
   EVERY_N_SECONDS( 5 ) { GA++; } // change patterns periodically
 }
 
@@ -253,7 +257,7 @@ void pulse() {
 void snakePattern() {
   u_int8_t s = 255;
   u_int8_t v = 255;
-  u_int8_t f=5;
+  u_int8_t f=0;
   
     
  for (u_int16_t i = 0; i < LEDS_PER_ROW; i++) {
@@ -280,7 +284,7 @@ void snakePattern() {
 void snakePatternReverse() {
   u_int8_t s = 255;
   u_int8_t v = 255;
-  u_int8_t f=5;
+  u_int8_t f=1;
   
     
  for (u_int16_t i = LEDS_PER_ROW - 1; i > 0 ; i--) {
@@ -290,12 +294,12 @@ void snakePatternReverse() {
 
  for (u_int16_t i = 0; i < ROW_NUM; i++) {
    lightOnePixelAndFadeFrame(0, i, gHue, s, v,f);
-   gHue--;
+   gHue++;
  }
 
  for (u_int16_t i = 1; i < LEDS_PER_ROW - 2; i++) {
    lightOnePixelAndFadeFrame(i, ROW_NUM - 1, gHue, s, v,f);
-   gHue--;
+   gHue++;
  }
 
  for (u_int16_t i = ROW_NUM - 1; i > 0 ; i--) {
@@ -372,6 +376,54 @@ void horizontalSnake() {
     }
 }
 
+
+void duelhorizontalSnake() {
+    u_int16_t fadeBy = 5;
+
+    u_int8_t h = random8();
+    u_int8_t h2 = random8();
+
+    u_int8_t s = 255;
+    u_int8_t v = 255;
+
+    u_int16_t offset0 = random16(0, LEDS_PER_ROW);
+    u_int16_t offset1 = random16(0, LEDS_PER_ROW);
+    u_int16_t offset2 = random16(0, LEDS_PER_ROW);
+    u_int16_t offset3 = random16(0, LEDS_PER_ROW);
+    u_int16_t offset4 = random16(0, LEDS_PER_ROW);
+    u_int16_t offset5 = random16(0, LEDS_PER_ROW);
+    u_int16_t offset6 = random16(0, LEDS_PER_ROW);
+    u_int16_t offset7 = random16(0, LEDS_PER_ROW);
+    u_int16_t offset8= random16(0, LEDS_PER_ROW);
+    u_int16_t offset9 = random16(0, LEDS_PER_ROW);
+    u_int16_t offset10 = random16(0, LEDS_PER_ROW);
+    u_int16_t offset11 = random16(0, LEDS_PER_ROW);
+
+    for (u_int16_t x = 0; x < 1 * LEDS_PER_ROW; x++) {
+        leds[posFor((x + offset0) % LEDS_PER_ROW, 0)] = CHSV(h, s, v);
+        leds[posFor((x + offset1) % LEDS_PER_ROW, 1)] = CHSV(h, s, v);
+        leds[posFor((x + offset2) % LEDS_PER_ROW, 2)] = CHSV(h, s, v);
+        leds[posFor((x + offset3) % LEDS_PER_ROW, 3)] = CHSV(h, s, v);
+        leds[posFor((x + offset4) % LEDS_PER_ROW, 4)] = CHSV(h, s, v);
+        leds[posFor((x + offset5) % LEDS_PER_ROW, 5)] = CHSV(h, s, v);
+        if(LEDS_PER_ROW-x - offset6>=0)
+        leds[posFor((LEDS_PER_ROW-x - offset6) % LEDS_PER_ROW, 0)] = CHSV(h2, s, v);
+        if(LEDS_PER_ROW-x - offset7>=0)
+        leds[posFor((LEDS_PER_ROW-x - offset7) % LEDS_PER_ROW, 1)] = CHSV(h2, s, v);
+        if(LEDS_PER_ROW-x - offset8>=0)
+        leds[posFor((LEDS_PER_ROW-x - offset8) % LEDS_PER_ROW, 2)] = CHSV(h2, s, v);
+        if(LEDS_PER_ROW-x - offset9>=0)
+        leds[posFor((LEDS_PER_ROW-x - offset9) % LEDS_PER_ROW, 3)] = CHSV(h2, s, v);
+        if(LEDS_PER_ROW-x - offset10>=0)
+        leds[posFor((LEDS_PER_ROW-x - offset10) % LEDS_PER_ROW, 4)] = CHSV(h2, s, v);
+        if(LEDS_PER_ROW-x - offset11>=0)
+        leds[posFor((LEDS_PER_ROW-x - offset11) % LEDS_PER_ROW, 5)] = CHSV(h2, s, v);
+        fadeToBlackBy(leds, NUM_LEDS, fadeBy);
+
+        render();   
+        delay(30);
+    }
+}
 void horizontalDrunkSnake() {
     u_int16_t fadeBy = 5;
 
@@ -389,6 +441,51 @@ void horizontalDrunkSnake() {
     }
 }
 
+void horizontal_wave()
+{
+   u_int16_t fadeBy = 5;
+
+    u_int8_t h = 70;
+    u_int8_t s = 255;
+    u_int8_t v = 255;
+
+    u_int16_t offset0 = 6;
+
+    for (u_int16_t x = 0; x < 1 * LEDS_PER_ROW; x++) {
+        
+        leds[posFor((x) % LEDS_PER_ROW, 0)] = CHSV(h, s, beatsin8(20,0,255,0,offset0));
+        leds[posFor((x) % LEDS_PER_ROW, 1)] = CHSV(h, s, beatsin8(20,0,255,0,offset0+60));
+        leds[posFor((x) % LEDS_PER_ROW, 2)] = CHSV(h, s, beatsin8(20,0,255,0,offset0+120));
+        leds[posFor((x) % LEDS_PER_ROW, 3)] = CHSV(h, s, beatsin8(20,0,255,0,offset0+180));
+        leds[posFor((x) % LEDS_PER_ROW, 4)] = CHSV(h, s, beatsin8(20,0,255,0,offset0+240));
+        leds[posFor((x) % LEDS_PER_ROW, 5)] = CHSV(h, s, beatsin8(20,0,255,0,offset0+300));
+    }
+     render();   
+     delay(30);
+}
+
+void horizontal_wave2()
+{
+   u_int16_t fadeBy = 5;
+
+    u_int8_t h = 148;
+    u_int8_t s = 255;
+    u_int8_t v = 255;
+
+    u_int16_t offset0 = 6;
+
+    for (u_int16_t x = 0; x < 1 * LEDS_PER_ROW; x++) {
+        
+        leds[posFor((x) % LEDS_PER_ROW, 0)] = CHSV(h, s, beatsin8(60,0,255,0,offset0+240));
+        leds[posFor((x) % LEDS_PER_ROW, 1)] = CHSV(h, s, beatsin8(60,0,255,0,offset0+120));
+        leds[posFor((x) % LEDS_PER_ROW, 2)] = CHSV(h, s, beatsin8(60,0,255,0,offset0+0));
+        leds[posFor((x) % LEDS_PER_ROW, 3)] = CHSV(h, s, beatsin8(60,0,255,0,offset0+0));
+        leds[posFor((x) % LEDS_PER_ROW, 4)] = CHSV(h, s, beatsin8(60,0,255,0,offset0+120));
+        leds[posFor((x) % LEDS_PER_ROW, 5)] = CHSV(h, s, beatsin8(60,0,255,0,offset0+240));
+    }
+     render();   
+        delay(60);
+}
 void horizontalDrunkSnakeReverse() {
     u_int16_t fadeBy = 5;
 
@@ -535,6 +632,7 @@ u_int16_t* wormMove(u_int16_t* location, int16_t* direction, u_int8_t* hsv) {
 }
 
 void render()
+
 {
 for(int i = 0; i < NUM_LEDS; i++) {
         CRGB fastLedRGB = leds[i];
