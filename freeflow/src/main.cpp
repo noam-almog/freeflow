@@ -46,7 +46,6 @@ int32_t randomNonRepeatingState();
 u_int16_t posFor(u_int16_t column, u_int16_t row);
 void runOnFrame(int (*f)());
 void paint_pixel(int i);
-// void test();
 void fadeFrame(u_int8_t f);
 void lightOnePixelAndFadeFrame(u_int16_t x, u_int16_t y, u_int8_t h, u_int8_t s, u_int8_t v,u_int8_t f);
 void fadePixel(u_int16_t x, u_int16_t y,u_int8_t f);
@@ -58,11 +57,14 @@ void frame_and_hori_snake();
 void fill_frame(u_int8_t h, u_int8_t s, u_int8_t v);
 void fadeRow(u_int16_t y, u_int8_t fadeBy);
 
+void wormPattern();
+u_int16_t* wormMove(u_int16_t* location, int16_t* direction, u_int8_t* hsv);
+
 typedef void (*SimplePatternList[])();
 
 CRGB leds[NUM_LEDS];
 // List of patterns to cycle through.  Each is defined as a separate function below.
-SimplePatternList gPatterns = { snakePattern, bpm, horizontalSnake, horizontalDrunkSnake ,frame_and_hori_snake};
+SimplePatternList gPatterns = { snakePattern, bpm, horizontalSnake, horizontalDrunkSnake ,frame_and_hori_snake, wormMove };
 // SimplePatternList gPatterns = { lightning,bpm,juggle,rainbow,rainbowWithGlitter,confetti,pulse};
 
 
@@ -244,7 +246,6 @@ void pulse() {
 
 
 void snakePattern() {
-  u_int8_t h = 150;
   u_int8_t s = 255;
   u_int8_t v = 255;
   u_int8_t f=5;
@@ -405,4 +406,83 @@ void fill_frame(u_int8_t h, u_int8_t s, u_int8_t v)
         leds[posFor(LEDS_PER_ROW-1,j)]=CHSV(h,s,v);
 
   }
+}
+
+void randomLocation(u_int16_t* location) {
+  location[0] = random16(0, LEDS_PER_ROW);
+  location[1] = random16(0, ROW_NUM);
+}
+
+void randomDir(int16_t* direction) {
+  direction[0] = random8(6) - 3;
+  direction[1] = random8(6) - 3;
+}
+
+void wormPattern() {
+
+  u_int16_t fadeBy = 5;
+
+  u_int8_t hsv[] = { gHue, 255l, 255l};
+
+  u_int16_t* l1 = new u_int16_t(2);
+  int16_t*   d1 = new int16_t(2);
+  randomLocation(l1);
+  randomDir(d1);
+
+  u_int16_t* l2 = new u_int16_t(2);
+  int16_t*   d2 = new int16_t(2);
+  randomLocation(l2);
+  randomDir(d2);
+
+  u_int16_t* l3 = new u_int16_t(2);
+  int16_t*   d3 = new int16_t(2);
+  randomLocation(l3);
+  randomDir(d3);
+
+  u_int16_t* l4 = new u_int16_t(2);
+  int16_t*   d4 = new int16_t(2);
+  randomLocation(l4);
+  randomDir(d4);
+
+  u_int16_t* l5 = new u_int16_t(2);
+  int16_t*   d5 = new int16_t(2);
+  randomLocation(l5);
+  randomDir(d5);
+
+  for (u_int16_t j = 0; j < ROW_NUM + 5; j++) {
+    l1 = wormMove(l1, d1, hsv);
+    l2 = wormMove(l2, d2, hsv);
+    l3 = wormMove(l3, d3, hsv);
+    l4 = wormMove(l4, d4, hsv);
+    l5 = wormMove(l5, d5, hsv);
+
+    fadeToBlackBy(leds, NUM_LEDS, fadeBy);
+
+    FastLED.show();
+    delay(30);    
+  }
+
+  delete[] l1;
+  delete[] l2;
+  delete[] l3;
+  delete[] l4;
+  delete[] l5;
+
+  delete[] d1;
+  delete[] d2;
+  delete[] d3;
+  delete[] d4;
+  delete[] d5;
+
+}
+
+u_int16_t* wormMove(u_int16_t* location, int16_t* direction, u_int8_t* hsv) {
+  int newX = direction[0] + location[0];
+  int newY = direction[1] + location[1];
+  if (newY >= 0 && newY < ROW_NUM && newX >= 0 && newX < LEDS_PER_ROW) {
+    leds[posFor(newX, newY)] = CHSV(hsv[0], hsv[1], hsv[2]);
+    location[0] = newX;
+    location[1] = newY;
+  }
+  return location;
 }
